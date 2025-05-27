@@ -18,6 +18,91 @@
       </categories>
   </entry>
   <entry>
+    <title>ONNX原理及应用</title>
+    <url>/2025/05/24/ONNX%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8/</url>
+    <content><![CDATA[<h2 id="一、ONNX工作原理与核心价值"><a href="#一、ONNX工作原理与核心价值" class="headerlink" title="一、ONNX工作原理与核心价值"></a>一、ONNX工作原理与核心价值</h2><h3 id="1-1-跨框架桥梁架构"><a href="#1-1-跨框架桥梁架构" class="headerlink" title="1.1 跨框架桥梁架构"></a>1.1 跨框架桥梁架构</h3><p><img src="/images/onnx_pipeline.png" class="lazyload placeholder" data-srcset="/images/onnx_pipeline.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="ONNX核心架构"></p>
+<h2 id="二、ONNX文件结构解析"><a href="#二、ONNX文件结构解析" class="headerlink" title="二、ONNX文件结构解析"></a>二、ONNX文件结构解析</h2><h3 id="2-1-基于Protocol-Buffers的二进制结构"><a href="#2-1-基于Protocol-Buffers的二进制结构" class="headerlink" title="2.1 基于Protocol Buffers的二进制结构"></a>2.1 基于Protocol Buffers的二进制结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// ONNX模型的核心组件定义</span><br><span class="line">message ModelProto &#123;</span><br><span class="line">  GraphProto graph = 7;          // 计算图定义（节点/边）</span><br><span class="line">  repeated TensorProto initializer = 5; // 预训练权重数据</span><br><span class="line">  repeated StringStringEntryProto metadata_props = 14; // 作者/版本等元信息</span><br><span class="line">  int64 ir_version = 1;          // 格式版本标识（当前最新为8）</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="核心组件解析"><a href="#核心组件解析" class="headerlink" title="核心组件解析"></a>核心组件解析</h2><h3 id="GraphProto"><a href="#GraphProto" class="headerlink" title="GraphProto"></a>GraphProto</h3><ul>
+<li><strong>计算逻辑描述</strong>：完整定义模型的计算图结构  <ul>
+<li><code>node</code>：算子节点序列（如<code>Conv</code>&#x2F;<code>MatMul</code>等）  </li>
+<li><code>input/output</code>：定义模型的输入输出张量格式</li>
+</ul>
+</li>
+</ul>
+<h3 id="TensorProto"><a href="#TensorProto" class="headerlink" title="TensorProto"></a>TensorProto</h3><ul>
+<li><strong>数据存储规范</strong>：高效存储模型权重参数  <ul>
+<li>支持格式：<code>FP32</code>&#x2F;<code>INT8</code>&#x2F;<code>UINT8</code>等  </li>
+<li>压缩优化：采用ZIP压缩可减少<code>75%</code>存储体积</li>
+</ul>
+</li>
+</ul>
+<h3 id="OPSET版本"><a href="#OPSET版本" class="headerlink" title="OPSET版本"></a>OPSET版本</h3><ul>
+<li><strong>算子集管理</strong>：控制算子兼容性与功能  <ul>
+<li>版本迭代：<code>v16</code>新增<code>GridSample</code>等视觉算子  </li>
+<li>引擎对齐：需与<code>TensorRT</code>&#x2F;<code>OpenVINO</code>等推理引擎版本匹配</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-2-动态形状支持机制"><a href="#2-2-动态形状支持机制" class="headerlink" title="2.2 动态形状支持机制"></a>2.2 动态形状支持机制</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 动态维度设置示例（支持动态batch/尺寸）</span><br><span class="line">dynamic_axes = &#123;</span><br><span class="line">    &#x27;input_images&#x27;: &#123; </span><br><span class="line">        0: &#x27;batch_size&#x27;,   # 第0维为动态batch</span><br><span class="line">        2: &#x27;image_height&#x27;, # 高度可变</span><br><span class="line">        3: &#x27;image_width&#x27;   # 宽度可变</span><br><span class="line">    &#125;,</span><br><span class="line">    &#x27;output_scores&#x27;: &#123;0: &#x27;batch_size&#x27;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="动态形状支持的三大核心优势"><a href="#动态形状支持的三大核心优势" class="headerlink" title="动态形状支持的三大核心优势"></a>动态形状支持的三大核心优势</h2><h3 id="批处理灵活性"><a href="#批处理灵活性" class="headerlink" title="批处理灵活性"></a>批处理灵活性</h3><ul>
+<li><strong>技术特性</strong>：同一推理引擎可同时处理  <ul>
+<li>实时请求：<code>batch_size=1</code> 的低延迟场景  </li>
+<li>离线任务：<code>batch_size=32</code> 的高吞吐场景</li>
+</ul>
+</li>
+</ul>
+<h3 id="多分辨率适配"><a href="#多分辨率适配" class="headerlink" title="多分辨率适配"></a>多分辨率适配</h3><ul>
+<li><strong>视觉模型支持</strong>：  <ul>
+<li>输入图像尺寸无需固定（如224x224）  </li>
+<li>自动适配：  <ul>
+<li>低分辨率：480p (640×480)  </li>
+<li>高分辨率：1080p (1920×1080)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="长序列处理"><a href="#长序列处理" class="headerlink" title="长序列处理"></a>长序列处理</h3><ul>
+<li><strong>NLP场景支持</strong>：  <ul>
+<li>短文本：处理<code>seq_length=64</code>的文本分类  </li>
+<li>长文档：处理<code>seq_length=4096</code>的文本摘要  </li>
+<li>流式输入：支持不定长语音识别序列</li>
+</ul>
+</li>
+</ul>
+<h2 id="三、模型简单应用"><a href="#三、模型简单应用" class="headerlink" title="三、模型简单应用"></a>三、模型简单应用</h2><h3 id="3-1-基础模型导出"><a href="#3-1-基础模型导出" class="headerlink" title="3.1 基础模型导出"></a>3.1 基础模型导出</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import torch</span><br><span class="line">import onnx</span><br><span class="line"></span><br><span class="line">class SimpleCNN(torch.nn.Module):</span><br><span class="line">    def __init__(self):</span><br><span class="line">        super().__init__()</span><br><span class="line">        self.conv = torch.nn.Conv2d(3, 64, 3)</span><br><span class="line">        self.pool = torch.nn.MaxPool2d(2)</span><br><span class="line">    </span><br><span class="line">    def forward(self, x):</span><br><span class="line">        return self.pool(torch.relu(self.conv(x)))</span><br><span class="line"></span><br><span class="line">model = SimpleCNN().eval()</span><br><span class="line">dummy_input = torch.randn(1, 3, 224, 224)</span><br><span class="line"></span><br><span class="line"># 关键导出参数</span><br><span class="line">torch.onnx.export(</span><br><span class="line">    model, </span><br><span class="line">    dummy_input,</span><br><span class="line">    &quot;model.onnx&quot;,</span><br><span class="line">    input_names=[&quot;input&quot;],</span><br><span class="line">    output_names=[&quot;output&quot;],</span><br><span class="line">    opset_version=13,</span><br><span class="line">    dynamic_axes=&#123;&quot;input&quot;: &#123;0: &quot;batch&quot;&#125;&#125;,</span><br><span class="line">    do_constant_folding=True</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-模型验证与可视化"><a href="#3-2-模型验证与可视化" class="headerlink" title="3.2 模型验证与可视化"></a>3.2 模型验证与可视化</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装验证工具链</span><br><span class="line">pip install onnx onnxruntime netron</span><br><span class="line"></span><br><span class="line"># 模型检查</span><br><span class="line">python -m onnx.checker model.onnx</span><br><span class="line"></span><br><span class="line"># 可视化模型结构</span><br><span class="line">python -m netron model.onnx</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-跨平台推理"><a href="#3-3-跨平台推理" class="headerlink" title="3.3 跨平台推理"></a>3.3 跨平台推理</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import onnxruntime as ort</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># 创建优化会话</span><br><span class="line">options = ort.SessionOptions()</span><br><span class="line">options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL</span><br><span class="line">session = ort.InferenceSession(&quot;model.onnx&quot;, options)</span><br><span class="line"></span><br><span class="line"># 数据预处理</span><br><span class="line">input_data = np.random.randn(1,3,224,224).astype(np.float32)</span><br><span class="line"></span><br><span class="line"># 执行推理</span><br><span class="line">outputs = session.run(None, &#123;&quot;input&quot;: input_data&#125;)</span><br><span class="line">print(f&quot;Output shape: &#123;outputs[0].shape&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="四"><a href="#四" class="headerlink" title="四"></a>四</h2><h3 id="4-1-模型简化（Simplification）"><a href="#4-1-模型简化（Simplification）" class="headerlink" title="4.1 模型简化（Simplification）"></a>4.1 模型简化（Simplification）</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装：pip install onnx-simplifier</span><br><span class="line">from onnxsim import simplify</span><br><span class="line"></span><br><span class="line">model = onnx.load(&quot;model.onnx&quot;)</span><br><span class="line">simplified_model, check = simplify(model)</span><br><span class="line">onnx.save(simplified_model, &quot;model_sim.onnx&quot;)</span><br><span class="line"></span><br><span class="line"># 验证简化结果</span><br><span class="line">assert check, &quot;Simplification check failed&quot;</span><br><span class="line">print(f&quot;节点数从&#123;len(model.graph.node)&#125;减少到&#123;len(simplified_model.graph.node)&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-自定义算子支持"><a href="#4-2-自定义算子支持" class="headerlink" title="4.2 自定义算子支持"></a>4.2 自定义算子支持</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import onnx</span><br><span class="line">from onnx import helper</span><br><span class="line"></span><br><span class="line"># 创建Relu6自定义算子</span><br><span class="line">relu6_node = helper.make_node(</span><br><span class="line">    &#x27;Clip&#x27;,</span><br><span class="line">    inputs=[&#x27;input&#x27;],</span><br><span class="line">    outputs=[&#x27;output&#x27;],</span><br><span class="line">    min=0.0,</span><br><span class="line">    max=6.0</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 插入到现有模型</span><br><span class="line">original_model = onnx.load(&quot;model.onnx&quot;)</span><br><span class="line">original_model.graph.node.append(relu6_node)</span><br><span class="line">onnx.save(original_model, &quot;model_custom.onnx&quot;)</span><br></pre></td></tr></table></figure>
+<h3 id="4-3-量化加速"><a href="#4-3-量化加速" class="headerlink" title="4.3 量化加速"></a>4.3 量化加速</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from onnxruntime.quantization import quantize_dynamic, QuantType</span><br><span class="line"></span><br><span class="line"># 动态量化（权重int8/激活float32）</span><br><span class="line">quantize_dynamic(</span><br><span class="line">    &quot;model_sim.onnx&quot;,</span><br><span class="line">    &quot;model_quant.onnx&quot;, </span><br><span class="line">    weight_type=QuantType.QInt8,</span><br><span class="line">    optimize_model=True</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 量化后模型体积对比</span><br><span class="line">import os</span><br><span class="line">print(f&quot;Size reduced: &#123;os.path.getsize(&#x27;model_sim.onnx&#x27;)/os.path.getsize(&#x27;model_quant.onnx&#x27;):.1f&#125;x&quot;)</span><br></pre></td></tr></table></figure>
+<h3 id="4-4"><a href="#4-4" class="headerlink" title="4.4"></a>4.4</h3><h4 id="4-4-1-图优化（Graph-Optimization）"><a href="#4-4-1-图优化（Graph-Optimization）" class="headerlink" title="4.4.1 图优化（Graph Optimization）"></a>4.4.1 图优化（Graph Optimization）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ONNX Runtime内置优化</span><br><span class="line">options = ort.SessionOptions()</span><br><span class="line">options.add_session_config_entry(&quot;session.graph_optimization_level&quot;, &quot;3&quot;)</span><br><span class="line"></span><br><span class="line"># 自定义优化规则</span><br><span class="line">options.add_session_config_entry(</span><br><span class="line">    &quot;session.optimized_model_filepath&quot;, </span><br><span class="line">    &quot;optimized_model.onnx&quot;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-4-2-与TensorRT集成"><a href="#4-4-2-与TensorRT集成" class="headerlink" title="4.4.2 与TensorRT集成"></a>4.4.2 与TensorRT集成</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 使用trtexec转换</span><br><span class="line"># trtexec --onnx=model.onnx --saveEngine=model.engine --fp16</span><br><span class="line"></span><br><span class="line"># Python调用示例</span><br><span class="line">import tensorrt as trt</span><br><span class="line"></span><br><span class="line">logger = trt.Logger(trt.Logger.WARNING)</span><br><span class="line">runtime = trt.Runtime(logger)</span><br><span class="line">with open(&quot;model.engine&quot;, &quot;rb&quot;) as f:</span><br><span class="line">    engine = runtime.deserialize_cuda_engine(f.read())</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Nasdaq-100ETF预测</title>
+    <url>/2025/05/18/nasdaq100etf%E9%A2%84%E6%B5%8B%E5%87%86%E7%A1%AE%E7%8E%87-80/</url>
+    <content><![CDATA[<h3 id="实时预测Nasdaq-100指数是否处在最高-最低点"><a href="#实时预测Nasdaq-100指数是否处在最高-最低点" class="headerlink" title="实时预测Nasdaq-100指数是否处在最高&#x2F;最低点"></a>实时预测Nasdaq-100指数是否处在最高&#x2F;最低点</h3><ul>
+<li>link: <a href="https://github.com/Yuan-33/stock_market">https://github.com/Yuan-33/stock_market</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>股票投资</category>
+      </categories>
+  </entry>
+  <entry>
     <title>支付宝投资持仓更新</title>
     <url>/2025/05/17/%E6%94%AF%E4%BB%98%E5%AE%9D%E6%8A%95%E8%B5%84%E6%8C%81%E4%BB%93%E6%9B%B4%E6%96%B0/</url>
     <content><![CDATA[<h2 id="持仓-现金"><a href="#持仓-现金" class="headerlink" title="持仓&#x2F;现金"></a>持仓&#x2F;现金</h2><ul>
@@ -104,91 +189,6 @@
 ]]></content>
       <categories>
         <category>随想</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Nasdaq-100ETF预测</title>
-    <url>/2025/05/18/nasdaq100etf%E9%A2%84%E6%B5%8B%E5%87%86%E7%A1%AE%E7%8E%87-80/</url>
-    <content><![CDATA[<h3 id="实时预测Nasdaq-100指数是否处在最高-最低点"><a href="#实时预测Nasdaq-100指数是否处在最高-最低点" class="headerlink" title="实时预测Nasdaq-100指数是否处在最高&#x2F;最低点"></a>实时预测Nasdaq-100指数是否处在最高&#x2F;最低点</h3><ul>
-<li>link: <a href="https://github.com/Yuan-33/stock_market">https://github.com/Yuan-33/stock_market</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>股票投资</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>ONNX原理及应用</title>
-    <url>/2025/05/24/ONNX%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8/</url>
-    <content><![CDATA[<h2 id="一、ONNX工作原理与核心价值"><a href="#一、ONNX工作原理与核心价值" class="headerlink" title="一、ONNX工作原理与核心价值"></a>一、ONNX工作原理与核心价值</h2><h3 id="1-1-跨框架桥梁架构"><a href="#1-1-跨框架桥梁架构" class="headerlink" title="1.1 跨框架桥梁架构"></a>1.1 跨框架桥梁架构</h3><p><img src="/images/onnx_pipeline.png" class="lazyload placeholder" data-srcset="/images/onnx_pipeline.png" srcset="https://pic1.zhimg.com/v2-cd38920285d125be80b3eb504052c550_b.webp" alt="ONNX核心架构"></p>
-<h2 id="二、ONNX文件结构解析"><a href="#二、ONNX文件结构解析" class="headerlink" title="二、ONNX文件结构解析"></a>二、ONNX文件结构解析</h2><h3 id="2-1-基于Protocol-Buffers的二进制结构"><a href="#2-1-基于Protocol-Buffers的二进制结构" class="headerlink" title="2.1 基于Protocol Buffers的二进制结构"></a>2.1 基于Protocol Buffers的二进制结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">// ONNX模型的核心组件定义</span><br><span class="line">message ModelProto &#123;</span><br><span class="line">  GraphProto graph = 7;          // 计算图定义（节点/边）</span><br><span class="line">  repeated TensorProto initializer = 5; // 预训练权重数据</span><br><span class="line">  repeated StringStringEntryProto metadata_props = 14; // 作者/版本等元信息</span><br><span class="line">  int64 ir_version = 1;          // 格式版本标识（当前最新为8）</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="核心组件解析"><a href="#核心组件解析" class="headerlink" title="核心组件解析"></a>核心组件解析</h2><h3 id="GraphProto"><a href="#GraphProto" class="headerlink" title="GraphProto"></a>GraphProto</h3><ul>
-<li><strong>计算逻辑描述</strong>：完整定义模型的计算图结构  <ul>
-<li><code>node</code>：算子节点序列（如<code>Conv</code>&#x2F;<code>MatMul</code>等）  </li>
-<li><code>input/output</code>：定义模型的输入输出张量格式</li>
-</ul>
-</li>
-</ul>
-<h3 id="TensorProto"><a href="#TensorProto" class="headerlink" title="TensorProto"></a>TensorProto</h3><ul>
-<li><strong>数据存储规范</strong>：高效存储模型权重参数  <ul>
-<li>支持格式：<code>FP32</code>&#x2F;<code>INT8</code>&#x2F;<code>UINT8</code>等  </li>
-<li>压缩优化：采用ZIP压缩可减少<code>75%</code>存储体积</li>
-</ul>
-</li>
-</ul>
-<h3 id="OPSET版本"><a href="#OPSET版本" class="headerlink" title="OPSET版本"></a>OPSET版本</h3><ul>
-<li><strong>算子集管理</strong>：控制算子兼容性与功能  <ul>
-<li>版本迭代：<code>v16</code>新增<code>GridSample</code>等视觉算子  </li>
-<li>引擎对齐：需与<code>TensorRT</code>&#x2F;<code>OpenVINO</code>等推理引擎版本匹配</li>
-</ul>
-</li>
-</ul>
-<h3 id="2-2-动态形状支持机制"><a href="#2-2-动态形状支持机制" class="headerlink" title="2.2 动态形状支持机制"></a>2.2 动态形状支持机制</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 动态维度设置示例（支持动态batch/尺寸）</span><br><span class="line">dynamic_axes = &#123;</span><br><span class="line">    &#x27;input_images&#x27;: &#123; </span><br><span class="line">        0: &#x27;batch_size&#x27;,   # 第0维为动态batch</span><br><span class="line">        2: &#x27;image_height&#x27;, # 高度可变</span><br><span class="line">        3: &#x27;image_width&#x27;   # 宽度可变</span><br><span class="line">    &#125;,</span><br><span class="line">    &#x27;output_scores&#x27;: &#123;0: &#x27;batch_size&#x27;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="动态形状支持的三大核心优势"><a href="#动态形状支持的三大核心优势" class="headerlink" title="动态形状支持的三大核心优势"></a>动态形状支持的三大核心优势</h2><h3 id="批处理灵活性"><a href="#批处理灵活性" class="headerlink" title="批处理灵活性"></a>批处理灵活性</h3><ul>
-<li><strong>技术特性</strong>：同一推理引擎可同时处理  <ul>
-<li>实时请求：<code>batch_size=1</code> 的低延迟场景  </li>
-<li>离线任务：<code>batch_size=32</code> 的高吞吐场景</li>
-</ul>
-</li>
-</ul>
-<h3 id="多分辨率适配"><a href="#多分辨率适配" class="headerlink" title="多分辨率适配"></a>多分辨率适配</h3><ul>
-<li><strong>视觉模型支持</strong>：  <ul>
-<li>输入图像尺寸无需固定（如224x224）  </li>
-<li>自动适配：  <ul>
-<li>低分辨率：480p (640×480)  </li>
-<li>高分辨率：1080p (1920×1080)</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="长序列处理"><a href="#长序列处理" class="headerlink" title="长序列处理"></a>长序列处理</h3><ul>
-<li><strong>NLP场景支持</strong>：  <ul>
-<li>短文本：处理<code>seq_length=64</code>的文本分类  </li>
-<li>长文档：处理<code>seq_length=4096</code>的文本摘要  </li>
-<li>流式输入：支持不定长语音识别序列</li>
-</ul>
-</li>
-</ul>
-<h2 id="三、模型简单应用"><a href="#三、模型简单应用" class="headerlink" title="三、模型简单应用"></a>三、模型简单应用</h2><h3 id="3-1-基础模型导出"><a href="#3-1-基础模型导出" class="headerlink" title="3.1 基础模型导出"></a>3.1 基础模型导出</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import torch</span><br><span class="line">import onnx</span><br><span class="line"></span><br><span class="line">class SimpleCNN(torch.nn.Module):</span><br><span class="line">    def __init__(self):</span><br><span class="line">        super().__init__()</span><br><span class="line">        self.conv = torch.nn.Conv2d(3, 64, 3)</span><br><span class="line">        self.pool = torch.nn.MaxPool2d(2)</span><br><span class="line">    </span><br><span class="line">    def forward(self, x):</span><br><span class="line">        return self.pool(torch.relu(self.conv(x)))</span><br><span class="line"></span><br><span class="line">model = SimpleCNN().eval()</span><br><span class="line">dummy_input = torch.randn(1, 3, 224, 224)</span><br><span class="line"></span><br><span class="line"># 关键导出参数</span><br><span class="line">torch.onnx.export(</span><br><span class="line">    model, </span><br><span class="line">    dummy_input,</span><br><span class="line">    &quot;model.onnx&quot;,</span><br><span class="line">    input_names=[&quot;input&quot;],</span><br><span class="line">    output_names=[&quot;output&quot;],</span><br><span class="line">    opset_version=13,</span><br><span class="line">    dynamic_axes=&#123;&quot;input&quot;: &#123;0: &quot;batch&quot;&#125;&#125;,</span><br><span class="line">    do_constant_folding=True</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-2-模型验证与可视化"><a href="#3-2-模型验证与可视化" class="headerlink" title="3.2 模型验证与可视化"></a>3.2 模型验证与可视化</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装验证工具链</span><br><span class="line">pip install onnx onnxruntime netron</span><br><span class="line"></span><br><span class="line"># 模型检查</span><br><span class="line">python -m onnx.checker model.onnx</span><br><span class="line"></span><br><span class="line"># 可视化模型结构</span><br><span class="line">python -m netron model.onnx</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-3-跨平台推理"><a href="#3-3-跨平台推理" class="headerlink" title="3.3 跨平台推理"></a>3.3 跨平台推理</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import onnxruntime as ort</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"># 创建优化会话</span><br><span class="line">options = ort.SessionOptions()</span><br><span class="line">options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL</span><br><span class="line">session = ort.InferenceSession(&quot;model.onnx&quot;, options)</span><br><span class="line"></span><br><span class="line"># 数据预处理</span><br><span class="line">input_data = np.random.randn(1,3,224,224).astype(np.float32)</span><br><span class="line"></span><br><span class="line"># 执行推理</span><br><span class="line">outputs = session.run(None, &#123;&quot;input&quot;: input_data&#125;)</span><br><span class="line">print(f&quot;Output shape: &#123;outputs[0].shape&#125;&quot;)</span><br></pre></td></tr></table></figure>
-
-<h2 id="四"><a href="#四" class="headerlink" title="四"></a>四</h2><h3 id="4-1-模型简化（Simplification）"><a href="#4-1-模型简化（Simplification）" class="headerlink" title="4.1 模型简化（Simplification）"></a>4.1 模型简化（Simplification）</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装：pip install onnx-simplifier</span><br><span class="line">from onnxsim import simplify</span><br><span class="line"></span><br><span class="line">model = onnx.load(&quot;model.onnx&quot;)</span><br><span class="line">simplified_model, check = simplify(model)</span><br><span class="line">onnx.save(simplified_model, &quot;model_sim.onnx&quot;)</span><br><span class="line"></span><br><span class="line"># 验证简化结果</span><br><span class="line">assert check, &quot;Simplification check failed&quot;</span><br><span class="line">print(f&quot;节点数从&#123;len(model.graph.node)&#125;减少到&#123;len(simplified_model.graph.node)&#125;&quot;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-2-自定义算子支持"><a href="#4-2-自定义算子支持" class="headerlink" title="4.2 自定义算子支持"></a>4.2 自定义算子支持</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import onnx</span><br><span class="line">from onnx import helper</span><br><span class="line"></span><br><span class="line"># 创建Relu6自定义算子</span><br><span class="line">relu6_node = helper.make_node(</span><br><span class="line">    &#x27;Clip&#x27;,</span><br><span class="line">    inputs=[&#x27;input&#x27;],</span><br><span class="line">    outputs=[&#x27;output&#x27;],</span><br><span class="line">    min=0.0,</span><br><span class="line">    max=6.0</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 插入到现有模型</span><br><span class="line">original_model = onnx.load(&quot;model.onnx&quot;)</span><br><span class="line">original_model.graph.node.append(relu6_node)</span><br><span class="line">onnx.save(original_model, &quot;model_custom.onnx&quot;)</span><br></pre></td></tr></table></figure>
-<h3 id="4-3-量化加速"><a href="#4-3-量化加速" class="headerlink" title="4.3 量化加速"></a>4.3 量化加速</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from onnxruntime.quantization import quantize_dynamic, QuantType</span><br><span class="line"></span><br><span class="line"># 动态量化（权重int8/激活float32）</span><br><span class="line">quantize_dynamic(</span><br><span class="line">    &quot;model_sim.onnx&quot;,</span><br><span class="line">    &quot;model_quant.onnx&quot;, </span><br><span class="line">    weight_type=QuantType.QInt8,</span><br><span class="line">    optimize_model=True</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># 量化后模型体积对比</span><br><span class="line">import os</span><br><span class="line">print(f&quot;Size reduced: &#123;os.path.getsize(&#x27;model_sim.onnx&#x27;)/os.path.getsize(&#x27;model_quant.onnx&#x27;):.1f&#125;x&quot;)</span><br></pre></td></tr></table></figure>
-<h3 id="4-4"><a href="#4-4" class="headerlink" title="4.4"></a>4.4</h3><h4 id="4-4-1-图优化（Graph-Optimization）"><a href="#4-4-1-图优化（Graph-Optimization）" class="headerlink" title="4.4.1 图优化（Graph Optimization）"></a>4.4.1 图优化（Graph Optimization）</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># ONNX Runtime内置优化</span><br><span class="line">options = ort.SessionOptions()</span><br><span class="line">options.add_session_config_entry(&quot;session.graph_optimization_level&quot;, &quot;3&quot;)</span><br><span class="line"></span><br><span class="line"># 自定义优化规则</span><br><span class="line">options.add_session_config_entry(</span><br><span class="line">    &quot;session.optimized_model_filepath&quot;, </span><br><span class="line">    &quot;optimized_model.onnx&quot;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h4 id="4-4-2-与TensorRT集成"><a href="#4-4-2-与TensorRT集成" class="headerlink" title="4.4.2 与TensorRT集成"></a>4.4.2 与TensorRT集成</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 使用trtexec转换</span><br><span class="line"># trtexec --onnx=model.onnx --saveEngine=model.engine --fp16</span><br><span class="line"></span><br><span class="line"># Python调用示例</span><br><span class="line">import tensorrt as trt</span><br><span class="line"></span><br><span class="line">logger = trt.Logger(trt.Logger.WARNING)</span><br><span class="line">runtime = trt.Runtime(logger)</span><br><span class="line">with open(&quot;model.engine&quot;, &quot;rb&quot;) as f:</span><br><span class="line">    engine = runtime.deserialize_cuda_engine(f.read())</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>技术</category>
       </categories>
   </entry>
 </search>
