@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基础位置编码 — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理引擎</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="vllm" data-href="/articles/vllm.html"><i class="fas fa-file-alt nav-icon"></i><span>vLLM</span></li>
+                <li class="nav-level3" data-page="sglang" data-href="/articles/sglang.html"><i class="fas fa-file-alt nav-icon"></i><span>SGLang</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-calendar-check nav-icon"></i><span>调度策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-map-marker-alt nav-icon"></i><span>位置编码</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3 active" data-page="position-encoding" data-href="/articles/position-encoding.html"><i class="fas fa-file-alt nav-icon"></i><span>基础位置编码</span></li>
+                <li class="nav-level3" data-page="rope" data-href="/articles/rope.html"><i class="fas fa-file-alt nav-icon"></i><span>RoPE</span></li>
+                <li class="nav-level3" data-page="mrope" data-href="/articles/mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>MRoPE</span></li>
+                <li class="nav-level3" data-page="interleaved-mrope" data-href="/articles/interleaved-mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>Interleaved-MRoPE</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">位置编码</a><span>›</span><span style="color:var(--text-primary)">基础位置编码</span>
+        </div>
+        <div class="content-card">
+          <h1>基础位置编码</h1>
+          <div class="subtitle">Position Encoding — Transformer 序列位置建模基础</div>
+          <div class="intro">位置编码（Position Encoding）是 Transformer 架构中不可或缺的组件，用于为模型提供 token 在序列中的位置信息。由于 Self-Attention 本身是排列不变的（permutation invariant），没有位置编码，Transformer 无法区分「我 爱 你」和「你 爱 我」。从最初的绝对位置编码到相对位置编码，再到旋转位置编码（RoPE），位置编码的演进直接决定了模型的长序列建模能力。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Transformer 的 Self-Attention 计算 Q·K^T 的点积来衡量 token 之间的相关性。如果不引入位置信息，两个相同 token 在不同位置的注意力分数完全相同——这意味着模型无法感知序列的顺序。位置编码的本质是在 Q/K/V 或 Attention Score 中注入位置信号，使模型能够区分不同位置的 token。</p>
+
+          <h3>绝对位置编码（Absolute Position Embedding）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">最直接的方式是为每个位置学习一个独立的 embedding 向量。给定最大序列长度 L 和 embedding 维度 d，维护一个可训练的参数矩阵 PE ∈ R^{L×d}，将位置 embedding 与 token embedding 相加后输入 Transformer。优点是简单有效，缺点是：（1）无法泛化到训练时未见过的长度——如果训练时最大长度为 2048，推理时无法处理 2049 以上的序列；（2）不同位置的 embedding 是独立学习的，无法捕捉相对位置关系。BERT 和 GPT-2 使用的就是可学习的绝对位置编码。</p>
+
+          <h3>正弦位置编码（Sinusoidal Position Encoding）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">原始 Transformer（Vaswani et al., 2017）提出的正弦位置编码使用固定的三角函数生成位置向量：PE(pos, 2i) = sin(pos / 10000^{2i/d})，PE(pos, 2i+1) = cos(pos / 10000^{2i/d})。其中 pos 是位置索引，i 是维度索引。不同维度使用不同频率的正弦/余弦波——低维度频率高（捕捉局部位置），高维度频率低（捕捉全局位置）。这一多尺度特性与后来 RoPE 的频率设计思想一脉相承。正弦编码的优点是无需训练参数，且理论上可以泛化到任意长度（但实际效果随长度增加而下降）。</p>
+
+          <h3>相对位置编码（Relative Position Encoding）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">相对位置编码不关注 token 的绝对位置，而是关注两个 token 之间的相对距离。Shaw et al.（2018）提出在 Attention Score 中加入可学习的相对位置 bias：a_{ij} = (q_i · k_j) + q_i · r_{i-j}，其中 r_{i-j} 是相对距离 i-j 对应的可学习向量。T5 的 Relative Position Bias 进一步简化为直接在 Attention Score 上加一个可学习的标量 bias（基于相对距离的 bucket）。相对位置编码的核心优势是：（1）更好地捕捉 token 间的局部依赖关系；（2）一定程度上支持长度泛化——因为编码的是相对距离而非绝对位置。</p>
+
+          <h3>ALiBi（Attention with Linear Biases）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">ALiBi（Press et al., 2022）提出了一种极其简洁的相对位置编码方案：直接在 Attention Score 上减去一个与相对距离成正比的线性惩罚。公式为：Attention(q_i, k_j) = q_i · k_j^T / √d - m · |i - j|，其中 m 是一个超参数（不同 Attention Head 使用不同的 m 值，呈几何级数分布）。ALiBi 的核心优势是：（1）零额外参数——不需要学习任何位置 embedding；（2）优秀的长度泛化能力——线性惩罚可以自然地外推到更长的序列；（3）实现极其简单——只需在 Attention Score 上做一次减法。BLOOM、MPT 等模型采用了 ALiBi。缺点是线性衰减假设过于简单，可能不适用于所有任务。</p>
+
+          <h3>位置编码的演进路线</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">位置编码的发展可以总结为三个阶段：（1）绝对位置阶段（2017-2020）——正弦编码、可学习编码，简单但长度泛化差；（2）相对位置阶段（2018-2022）——Shaw、T5 Bias、ALiBi，关注 token 间相对关系，长度泛化更好；（3）旋转位置阶段（2021-至今）——RoPE 及其变体，通过旋转矩阵在 Q/K 上编码位置，兼顾了相对位置建模和计算效率，成为当前 LLM 的主流选择。RoPE 的成功在于它用一个优雅的数学构造同时实现了绝对位置编码的实现方式和相对位置编码的语义效果。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-sort-numeric-up"></i><span><strong>绝对位置编码</strong>：为每个位置学习独立 embedding，简单有效但长度泛化差，BERT/GPT-2 使用</span></li>
+            <li><i class="fas fa-wave-square"></i><span><strong>正弦位置编码</strong>：使用多频率三角函数生成位置向量，无需训练参数，原始 Transformer 提出</span></li>
+            <li><i class="fas fa-exchange-alt"></i><span><strong>相对位置编码</strong>：编码 token 间的相对距离，Shaw/T5/ALiBi 等方案，长度泛化更好</span></li>
+            <li><i class="fas fa-compress-arrows-alt"></i><span><strong>ALiBi</strong>：线性偏置方案，零额外参数，优秀的长度外推能力，BLOOM/MPT 使用</span></li>
+            <li><i class="fas fa-sync-alt"></i><span><strong>RoPE 主导</strong>：旋转位置编码成为当前 LLM 主流，LLaMA/Qwen/Mistral/Gemma 等均采用</span></li>
+            <li><i class="fas fa-expand-arrows-alt"></i><span><strong>长度外推</strong>：位置编码的核心挑战之一，NTK-aware Scaling、YaRN、Code Llama 等方法持续改进</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：为什么 Transformer 需要位置编码？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Transformer 的 Self-Attention 机制是排列不变的（permutation invariant）——对输入序列的任意排列，Attention 的输出只是相应排列，不会改变每个位置的计算结果。这意味着如果没有位置编码，模型无法区分「猫 吃 鱼」和「鱼 吃 猫」。位置编码通过在输入或 Attention 计算中注入位置信号，使模型能够感知 token 的顺序和距离关系。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：绝对位置编码和相对位置编码的区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：绝对位置编码为每个位置分配一个固定的向量（可学习或固定函数），表示的是「这个 token 在第几个位置」。相对位置编码关注两个 token 之间的距离，表示的是「这两个 token 相隔多远」。绝对位置编码的缺点是长度泛化差——训练时没见过的位置无法处理。相对位置编码更好地捕捉了局部依赖关系，且在一定程度上支持长度外推。RoPE 是一种特殊的编码方式：实现上是绝对位置（在 Q/K 上施加位置相关的旋转），但语义上是相对位置（旋转后的内积只依赖相对距离）。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：正弦位置编码的多频率设计有什么意义？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：正弦编码使用不同频率的 sin/cos 函数，形成一个从高频到低频的频率谱。低维度使用高频函数——对位置变化敏感，适合区分相邻 token（局部位置信息）。高维度使用低频函数——对位置变化不敏感，适合区分远距离 token（全局位置信息）。这种多尺度设计类似于二进制编码的各位权值——最低位变化最快，最高位变化最慢。RoPE 继承了这一设计思想，使用 θ_i = 10000^{-2i/d} 作为旋转频率。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：ALiBi 为什么能实现长度外推？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：ALiBi 在 Attention Score 上减去一个与相对距离成正比的线性惩罚 m·|i-j|。由于这个惩罚是线性函数，对任意距离都可以计算，不存在训练时未见过的位置问题。同时，线性惩罚使得远距离 token 的注意力自然衰减，符合语言的局部性假设（相邻 token 更相关）。但线性衰减过于简单，对于需要精确远距离建模的任务（如检索、复制）可能表现不佳。实际测试中，ALiBi 在训练长度的 2-4 倍范围内效果良好，超出后性能下降。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：RoPE 为什么能成为当前 LLM 的主流位置编码？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：RoPE 的优势在于：（1）数学优雅——通过旋转矩阵在 Q/K 上编码位置，内积自然编码相对距离，兼顾了绝对位置的实现简洁性和相对位置的语义优势；（2）无额外参数——不需要学习位置 embedding，旋转角度由固定公式计算；（3）兼容线性 Attention——旋转操作可以与 FlashAttention 等高效实现无缝结合；（4）可扩展性好——通过调整频率基数（如 NTK-aware Scaling）可以支持更长的上下文。LLaMA、Qwen、Mistral、Gemma、DeepSeek 等几乎所有主流 LLM 都采用 RoPE。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Attention Is All You Need — 正弦位置编码的提出（Vaswani et al., 2017）</a></li>
+            <li><a href="https://arxiv.org/abs/1803.02155" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Self-Attention with Relative Position Representations — 相对位置编码（Shaw et al., 2018）</a></li>
+            <li><a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>RoFormer: Enhanced Transformer with Rotary Position Embedding — RoPE（Su et al., 2021）</a></li>
+            <li><a href="https://arxiv.org/abs/2108.12409" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Train Short, Test Long: Attention with Linear Biases — ALiBi（Press et al., 2022）</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

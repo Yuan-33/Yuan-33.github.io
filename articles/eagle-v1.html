@@ -84,6 +84,15 @@
                 <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
               </ul>
             </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-map-marker-alt nav-icon"></i><span>位置编码</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="position-encoding" data-href="/articles/position-encoding.html"><i class="fas fa-file-alt nav-icon"></i><span>基础位置编码</span></li>
+                <li class="nav-level3" data-page="rope" data-href="/articles/rope.html"><i class="fas fa-file-alt nav-icon"></i><span>RoPE</span></li>
+                <li class="nav-level3" data-page="mrope" data-href="/articles/mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>MRoPE</span></li>
+                <li class="nav-level3" data-page="interleaved-mrope" data-href="/articles/interleaved-mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>Interleaved-MRoPE</span></li>
+              </ul>
+            </li>
           </ul>
         </li>
         <!-- Level 1: 量化 -->
@@ -123,10 +132,10 @@
         <div class="content-card">
           <h1>Eagle-v1</h1>
           <div class="subtitle">Speculative Decoding — Feature-Level Draft</div>
-          <div class="intro">Eagle（Extrapolation Algorithm for Greater Language-model Efficiency）是一种基于特征级别的投机解码方法，由 SafeAI Lab 提出。它使用轻量级 Draft Head 从主模型的隐藏状态（而非 token embedding）预测未来 token，实现了比传统 token-level 方法更高的接受率，端到端加速 2.5-3.5 倍。</div>
+          <div class="intro">Eagle是一种基于特征级别的投机解码方法，由 SafeAI Lab 提出。它使用轻量级 Draft Head 从主模型的隐藏状态（而非 token embedding）预测未来 token，实现了比传统 token-level 方法更高的接受率，端到端加速 2.5-3.5 倍。</div>
 
           <h2><i class="fas fa-book"></i> 核心原理</h2>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统投机解码（如 Medusa）在 token 级别进行 Draft，而 Eagle 发现 token embedding 空间的不确定性远高于特征（hidden state）空间。因此 Eagle 在主模型最后一层的隐藏状态上训练一个轻量级 Draft Head（线性层 + Transformer Block），以自回归方式在特征空间中生成 Draft 序列，显著提升了预测准确性。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统投机解码（如 Medusa）在 token 级别进行 Draft，而 Eagle 发现 hidden state的语义复杂度高于token embedding。因此 Eagle 在主模型最后一层的隐藏状态上训练一个轻量级 Draft Head（线性层 + Transformer Block），以自回归方式在特征空间中生成 Draft 序列，显著提升了预测准确性。</p>
 
           <h3>为什么选择特征空间而非 Token 空间？</h3>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle 的核心洞察来自对 LLM 内部表征的分析。研究发现，token embedding 空间是离散的、高维稀疏的，相邻 token 之间的语义跳跃很大，导致预测下一个 token 的不确定性很高。而隐藏状态（hidden state）是连续的、低维稠密的，包含了丰富的上下文语义信息，相邻位置的特征变化更加平滑。具体来说，在 token 空间中，同一个位置可能的下一个 token 有数万个候选，但在特征空间中，下一个位置的隐藏状态可以通过当前特征进行更准确的回归预测。这一发现使得 Eagle 的 Draft Head 可以利用更可预测的特征空间来间接预测 token，大幅提升了 Draft 的准确率。</p>
@@ -279,6 +288,15 @@
                 <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
                 <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
                 <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-map-marker-alt nav-icon"></i><span>位置编码</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="position-encoding" data-href="/articles/position-encoding.html"><i class="fas fa-file-alt nav-icon"></i><span>基础位置编码</span></li>
+                <li class="nav-level3" data-page="rope" data-href="/articles/rope.html"><i class="fas fa-file-alt nav-icon"></i><span>RoPE</span></li>
+                <li class="nav-level3" data-page="mrope" data-href="/articles/mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>MRoPE</span></li>
+                <li class="nav-level3" data-page="interleaved-mrope" data-href="/articles/interleaved-mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>Interleaved-MRoPE</span></li>
               </ul>
             </li>
           </ul>

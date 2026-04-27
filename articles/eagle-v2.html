@@ -83,6 +83,15 @@
                 <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
               </ul>
             </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-map-marker-alt nav-icon"></i><span>位置编码</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="position-encoding" data-href="/articles/position-encoding.html"><i class="fas fa-file-alt nav-icon"></i><span>基础位置编码</span></li>
+                <li class="nav-level3" data-page="rope" data-href="/articles/rope.html"><i class="fas fa-file-alt nav-icon"></i><span>RoPE</span></li>
+                <li class="nav-level3" data-page="mrope" data-href="/articles/mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>MRoPE</span></li>
+                <li class="nav-level3" data-page="interleaved-mrope" data-href="/articles/interleaved-mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>Interleaved-MRoPE</span></li>
+              </ul>
+            </li>
           </ul>
         </li>
         <!-- Level 1: 量化 -->
@@ -122,7 +131,7 @@
         <div class="content-card">
           <h1>Eagle-v2</h1>
           <div class="subtitle">Speculative Decoding — Dynamic Draft Tree</div>
-          <div class="intro">Eagle-v2（EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees）在 Eagle-v1 的基础上，核心发现是 Draft token 的接受率不仅与位置相关，还与上下文高度相关。利用 EAGLE Draft 模型的良好校准性（置信度分数能以小误差近似真实接受率），Eagle-v2 引入了上下文感知的动态 Draft Tree，将计算资源集中在高概率路径上，实现了 3.05x-4.26x 的端到端无损加速，比 Eagle-v1 快 20%-40%。</div>
+          <div class="intro">Eagle-v2在 Eagle-v1 的基础上，核心发现是 Draft token 的接受率不仅与位置相关，还与上下文高度相关。利用 EAGLE Draft 模型的良好校准性，Eagle-v2 引入了上下文感知的动态 Draft Tree，将计算资源集中在高概率路径上，实现了 3.05x-4.26x 的端到端无损加速，比 Eagle-v1 快 20%-40%。</div>
 
           <h2><i class="fas fa-book"></i> 核心改进</h2>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1 使用静态 Draft Tree，隐式假设 Draft token 的接受率仅取决于其位置。Eagle-v2 通过实验推翻了这一假设：接受率还与上下文强相关——不同上下文下，同一位置的 Draft token 接受率差异很大。基于这一洞察，Eagle-v2 利用 EAGLE Draft 模型的良好校准性（置信度分数与真实接受率误差很小），提出上下文感知的动态 Draft Tree，根据每个节点的置信度自适应调整树结构，实现更高效的计算分配。</p>

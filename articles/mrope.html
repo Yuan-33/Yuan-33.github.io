@@ -3,45 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KV Cache — AI-Infra 技术研究</title>
+  <title>MRoPE — AI-Infra 技术研究</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
-  <!-- Top Navbar -->
   <nav class="navbar">
     <div style="display:flex;align-items:center;gap:12px;">
-      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
-      <a href="/" class="navbar-brand" style="text-decoration:none;">
-        <i class="fas fa-microchip icon"></i>
-        AI-Infra 技术研究
-      </a>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
     </div>
     <div class="navbar-actions">
       <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
     </div>
   </nav>
-
-  <!-- Layout -->
   <div class="layout">
-
-    <!-- Sidebar Overlay (mobile) -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <ul class="nav-tree" id="navTree">
-        <!-- Level 1: 大模型推理 -->
         <li class="nav-level1">
-          <div class="nav-header" data-level="1">
-            <span class="arrow open">&#9654;</span>
-            <i class="fas fa-brain nav-icon"></i>
-            <span>大模型推理</span>
-          </div>
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
           <ul class="nav-children expanded">
             <li class="nav-level2">
               <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
@@ -89,76 +71,91 @@
               <ul class="nav-children">
                 <li class="nav-level3" data-page="position-encoding" data-href="/articles/position-encoding.html"><i class="fas fa-file-alt nav-icon"></i><span>基础位置编码</span></li>
                 <li class="nav-level3" data-page="rope" data-href="/articles/rope.html"><i class="fas fa-file-alt nav-icon"></i><span>RoPE</span></li>
-                <li class="nav-level3" data-page="mrope" data-href="/articles/mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>MRoPE</span></li>
+                <li class="nav-level3 active" data-page="mrope" data-href="/articles/mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>MRoPE</span></li>
                 <li class="nav-level3" data-page="interleaved-mrope" data-href="/articles/interleaved-mrope.html"><i class="fas fa-file-alt nav-icon"></i><span>Interleaved-MRoPE</span></li>
               </ul>
             </li>
           </ul>
         </li>
-        <!-- Level 1: 量化 -->
         <li class="nav-level1">
-          <div class="nav-header" data-level="1">
-            <span class="arrow">&#9654;</span>
-            <i class="fas fa-compress-arrows-alt nav-icon"></i>
-            <span>量化</span>
-          </div>
-          <ul class="nav-children">
-            <!-- 预留，暂无子页面 -->
-          </ul>
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
         </li>
       </ul>
-
-      <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <button class="theme-toggle" id="themeToggle">
-          <i class="fas fa-moon"></i>
-          <div class="toggle-track">
-            <div class="toggle-thumb"></div>
-          </div>
-          <span id="themeLabel">深色模式</span>
-        </button>
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
       </div>
     </aside>
-
-    <!-- Main Content -->
     <main class="main">
       <div class="content-wrapper">
         <div class="breadcrumb">
-          <a href="/">首页</a><span>›</span>
-          <a href="#">大模型推理</a><span>›</span>
-          <span style="color:var(--text-primary)">KV Cache</span>
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">位置编码</a><span>›</span><span style="color:var(--text-primary)">MRoPE</span>
         </div>
         <div class="content-card">
-          <h1>KV Cache</h1>
-          <div class="intro">在自回归生成中缓存历史 Key-Value 张量，避免重复计算，是提升推理吞吐的核心技术。KV Cache 的管理和优化直接决定了大模型推理系统的性能上限，涉及 PagedAttention、Prefix Caching、KV Cache 压缩等关键优化方向。</div>
+          <h1>MRoPE</h1>
+          <div class="subtitle">Multimodal Rotary Position Embedding — 多模态旋转位置编码</div>
+          <div class="intro">MRoPE 是专为多模态模型设计的三维位置编码，将标准一维 RoPE 扩展到时间、高度、宽度，用于图像/视频的空间-时间位置建模。</div>
 
-          <h2><i class="fas fa-book"></i> 基本原理</h2>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在 Transformer 自回归生成中，每生成一个新 token 都需要对所有历史 token 计算 Attention。如果不缓存，第 n 步需要重算前 n-1 步的 Key 和 Value，时间复杂度为 O(n²)。KV Cache 将每一步计算出的 Key 和 Value 张量缓存下来，下一步只需计算新 token 的 Q/K/V 并与缓存拼接，将每步复杂度降为 O(n)。</p>
+          <h2><i class="fas fa-book"></i> MRoPE 与 RoPE 的核心差异</h2>
 
-          <h2><i class="fas fa-star"></i> 关键技术</h2>
+          <h3>1. 位置维度不同</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+            ✅ <strong>RoPE：一维位置 m</strong>（文本序列顺序）<br>
+            ✅ <strong>MRoPE：三维位置 (t, h, w)</strong>（时间、高、宽）
+          </p>
+
+          <h3>2. 向量维度分组方式不同</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+            <strong>RoPE：</strong>所有维度共享同一个位置 m<br>
+            <strong>MRoPE：</strong>向量平均分为三组，分别旋转：
+          </p>
+          <p style="color:var(--text-primary); font-weight: bold;">
+            前 1/3 维 → 时间 t<br>
+            中 1/3 维 → 高度 h<br>
+            后 1/3 维 → 宽度 w
+          </p>
+
+          <h3>3. 旋转公式不同（核心）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+            <strong>RoPE：</strong><br>
+            f(q,m) = R<sub>mθ</sub> · q
+          </p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+            <strong>MRoPE：</strong><br>
+            f(q,t,h,w) = R<sub>tθ</sub> ⊗ R<sub>hθ</sub> ⊗ R<sub>wθ</sub> · q
+          </p>
+
+          <h3>4. 适用场景不同</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+            <strong>RoPE：</strong>纯文本<br>
+            <strong>MRoPE：</strong>文本 + 图像 + 视频（多模态）
+          </p>
+
+          <h3>5. 文本兼容性</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">
+            MRoPE 让文本 token 满足：<br>
+            <strong style="color:var(--text-primary)">t = h = w = m</strong><br>
+            此时 MRoPE 完全等价于标准 RoPE，文本能力无损。
+          </p>
+
+          <h2><i class="fas fa-star"></i> 核心特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-gauge-high"></i><span><strong>基础 KV Cache</strong>：缓存每层 Attention 的 Key/Value 张量，避免重复计算历史 token，将推理复杂度从 O(n²) 降至 O(n)</span></li>
-            <li><i class="fas fa-layer-group"></i><span><strong>PagedAttention</strong>（vLLM）：借鉴虚拟内存分页思想，将 KV Cache 划分为固定大小的物理块（Block），按需分配显存，消除预分配导致的内存碎片，显存利用率提升至接近 100%</span></li>
-            <li><i class="fas fa-copy"></i><span><strong>Prefix Caching</strong>：对共享相同前缀（如系统提示词）的多个请求，复用同一份 KV Cache，避免重复计算。在多轮对话、Agent 调用等场景下效果显著</span></li>
-            <li><i class="fas fa-compress"></i><span><strong>KV Cache 压缩</strong>：GQA（Grouped-Query Attention）和 MQA（Multi-Query Attention）通过共享 Attention Head 减少 KV Cache 大小；H₂O、StreamingLLM 等方法通过注意力分数筛选重要 token 进行保留</span></li>
-            <li><i class="fas fa-database"></i><span><strong>显存管理</strong>：KV Cache 是大模型推理的主要显存瓶颈。7B 模型处理 4K 上下文约需 1GB KV Cache，70B 模型则需 10GB+。高效的显存调度策略是高并发推理的关键</span></li>
-            <li><i class="fas fa-exchange-alt"></i><span><strong>Swap 与 Offloading</strong>：当 GPU 显存不足时，可将部分 KV Cache 交换到 CPU 内存或 NVMe SSD，通过异步预取减少延迟影响</span></li>
+            <li><i class="fas fa-cube"></i><span><strong>三维位置</strong>：支持时间、高度、宽度编码</span></li>
+            <li><i class="fas fa-image"></i><span><strong>图像/视频友好</strong>：天然支持空间位置建模</span></li>
+            <li><i class="fas fa-text-height"></i><span><strong>兼容 RoPE</strong>：文本场景退化为标准 RoPE</span></li>
+            <li><i class="fas fa-bolt"></i><span><strong>无额外参数</strong>：仅改变位置分组</span></li>
           </ul>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>Efficient Memory Management for Large Language Model Serving with PagedAttention (Kwon et al., 2023)</a></li>
-            <li><a href="#"><i class="fas fa-file-pdf"></i>FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., 2022)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>vLLM — 高性能 LLM 推理引擎（PagedAttention 实现）</a></li>
-            <li><a href="#"><i class="fas fa-book"></i>GQA: Training Generalized Multi-Query Transformer Models (Ainslie et al., 2023)</a></li>
+            <li><a href="https://arxiv.org/abs/2409.12191" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Qwen2-VL: MRoPE 原生论文</a></li>
+            <li><a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>RoPE 原始论文</a></li>
           </ul>
-
-          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2025-12-19</div>
         </div>
       </div>
     </main>
   </div>
-
   <script src="/js/theme.js"></script>
   <script src="/js/nav.js"></script>
   <script src="/js/utils.js"></script>
