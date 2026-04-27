@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI-Infra 技术研究</title>
+  <title>KV Cache — AI-Infra 技术研究</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -103,30 +103,31 @@
     <!-- Main Content -->
     <main class="main">
       <div class="content-wrapper">
-        <!-- Welcome page -->
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span>
+          <a href="#">大模型推理</a><span>›</span>
+          <span style="color:var(--text-primary)">KV Cache</span>
+        </div>
         <div class="content-card">
-          <div class="welcome-hero">
-            <h1>AI-Infra 技术研究</h1>
-            <p>探索大模型推理优化、量化技术、投机解码等 AI 基础设施前沿方向。</p>
-            <div class="welcome-cards">
-              <a href="/articles/kvcache.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-memory"></i> KV Cache</h3>
-                <p>推理加速核心技术</p>
-              </a>
-              <a href="/articles/eagle-v1.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-bolt"></i> Eagle-v1</h3>
-                <p>特征级投机解码</p>
-              </a>
-              <a href="/articles/eagle-v2.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-bolt"></i> Eagle-v2</h3>
-                <p>动态 Draft Tree</p>
-              </a>
-              <a href="/articles/eagle-v3.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-bolt"></i> Eagle-v3</h3>
-                <p>上下文感知优化</p>
-              </a>
-            </div>
-          </div>
+          <h1>KV Cache</h1>
+          <div class="intro">在自回归生成中缓存历史 Key-Value 张量，避免重复计算，是提升推理吞吐的核心技术。涉及 PagedAttention、Prefix Caching 等优化。</div>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-gauge-high"></i><span>避免重复计算历史 token 的 Key/Value，显著降低推理延迟</span></li>
+            <li><i class="fas fa-layer-group"></i><span>PagedAttention：借鉴虚拟内存分页思想，按需分配显存块，减少碎片化</span></li>
+            <li><i class="fas fa-copy"></i><span>Prefix Caching：共享相同前缀的请求复用 KV 缓存，降低多轮对话开销</span></li>
+            <li><i class="fas fa-compress"></i><span>KV Cache 压缩：GQA、MQA 等注意力头共享方案减少缓存占用</span></li>
+          </ul>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="#"><i class="fas fa-file-pdf"></i>Efficient Memory Management for Large Language Model Serving with PagedAttention</a></li>
+            <li><a href="#"><i class="fas fa-github"></i>vLLM — 高性能推理引擎</a></li>
+            <li><a href="#"><i class="fas fa-book"></i>FlashAttention: Fast and Memory-Efficient Exact Attention</a></li>
+          </ul>
+
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
         </div>
       </div>
     </main>

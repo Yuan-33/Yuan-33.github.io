@@ -593,12 +593,14 @@ a:hover {
 }
 
 .welcome-card {
+  display: block;
   padding: 20px;
   background: var(--bg-card-hover);
   border-radius: 10px;
   border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text-primary);
 }
 
 .welcome-card:hover {

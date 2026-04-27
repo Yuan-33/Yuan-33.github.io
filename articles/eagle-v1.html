@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI-Infra 技术研究</title>
+  <title>Eagle-v1 — AI-Infra 技术研究</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -103,30 +103,32 @@
     <!-- Main Content -->
     <main class="main">
       <div class="content-wrapper">
-        <!-- Welcome page -->
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span>
+          <a href="#">大模型推理</a><span>›</span>
+          <a href="#">投机解码</a><span>›</span>
+          <span style="color:var(--text-primary)">Eagle-v1</span>
+        </div>
         <div class="content-card">
-          <div class="welcome-hero">
-            <h1>AI-Infra 技术研究</h1>
-            <p>探索大模型推理优化、量化技术、投机解码等 AI 基础设施前沿方向。</p>
-            <div class="welcome-cards">
-              <a href="/articles/kvcache.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-memory"></i> KV Cache</h3>
-                <p>推理加速核心技术</p>
-              </a>
-              <a href="/articles/eagle-v1.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-bolt"></i> Eagle-v1</h3>
-                <p>特征级投机解码</p>
-              </a>
-              <a href="/articles/eagle-v2.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-bolt"></i> Eagle-v2</h3>
-                <p>动态 Draft Tree</p>
-              </a>
-              <a href="/articles/eagle-v3.html" class="welcome-card" style="text-decoration:none;">
-                <h3><i class="fas fa-bolt"></i> Eagle-v3</h3>
-                <p>上下文感知优化</p>
-              </a>
-            </div>
-          </div>
+          <h1>Eagle-v1</h1>
+          <div class="subtitle">Speculative Decoding — Feature-Level Draft</div>
+          <div class="intro">基于特征级别的投机解码方法，使用轻量级 draft head 从主模型隐藏状态预测未来 token，无需独立 draft 模型。</div>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-feather"></i><span>轻量级 Draft Head：仅一个线性层 + Transformer Block，参数量极小</span></li>
+            <li><i class="fas fa-link"></i><span>复用主模型隐藏状态，无需额外的 draft 模型，部署简单</span></li>
+            <li><i class="fas fa-chart-line"></i><span>投机接受率高于传统 n-gram / Medusa 方案</span></li>
+            <li><i class="fas fa-shield-halved"></i><span>输出分布与主模型完全一致，保证无损加速</span></li>
+          </ul>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty</a></li>
+            <li><a href="#"><i class="fas fa-github"></i>EAGLE 推理加速实现</a></li>
+          </ul>
+
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
         </div>
       </div>
     </main>
