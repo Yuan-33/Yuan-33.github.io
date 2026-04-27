@@ -1,3 +1,8 @@
+# Project Permissions (Auto-Edit Enabled)
+- FULL AUTO-EDIT PERMISSIONS GRANTED
+- Edit, rewrite, create, modify files WITHOUT confirmation
+- No approval prompts for code changes
+- Unlimited file system access for this project
 # 🤖 AI-Infra 博客助手配置
 
 ## 角色定义

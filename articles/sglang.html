@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SGLang — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理引擎</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="vllm" data-href="/articles/vllm.html"><i class="fas fa-file-alt nav-icon"></i><span>vLLM</span></li>
+                <li class="nav-level3" data-page="sglang" data-href="/articles/sglang.html"><i class="fas fa-file-alt nav-icon"></i><span>SGLang</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-calendar-check nav-icon"></i><span>调度策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">推理引擎</a><span>›</span><span style="color:var(--text-primary)">SGLang</span>
+        </div>
+        <div class="content-card">
+          <h1>SGLang</h1>
+          <div class="subtitle">Inference Engine — Structured Generation Language</div>
+          <div class="intro">SGLang（Structured Generation Language）是 UC Berkeley 开源的高效 LLM 推理与编程框架。其核心创新是 RadixAttention——基于 Radix Tree 的前缀缓存共享机制，以及原生支持结构化生成（JSON Schema、正则表达式约束解码）。SGLang 在复杂 LLM 程序（多轮调用、分支、工具调用）的执行效率上显著优于 vLLM。</div>
+
+          <h2><i class="fas fa-book"></i> 架构概述</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">SGLang 的设计哲学是「LLM 推理不只是单次调用」——现代 LLM 应用通常涉及多轮对话、RAG 检索、Agent 工具调用、思维链推理等复杂的多步程序。SGLang 提供了前端语言（Python DSL）和后端引擎（RadixAttention）两个层面的优化。前端语言让用户可以用简洁的语法描述复杂的 LLM 程序，后端引擎自动优化这些程序的执行效率。</p>
+
+          <h3>核心特性：RadixAttention</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">RadixAttention 是 SGLang 的核心创新，解决了多请求之间的 KV Cache 前缀共享问题。与 vLLM 的 Automatic Prefix Caching 不同，RadixAttention 使用 Radix Tree（基数树）作为底层数据结构，支持更灵活的前缀匹配和淘汰策略。Radix Tree 的每个节点代表一段 token 序列及其对应的 KV Cache 物理块，从根到叶的路径构成一个完整的前缀。新请求到达时，从根开始逐段匹配，找到最长的公共前缀，直接复用其 KV Cache。RadixAttention 还支持多级前缀共享——系统提示词、RAG 检索结果、用户输入可以作为不同级别的前缀独立缓存。</p>
+
+          <h3>结构化生成（Constrained Decoding）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">SGLang 原生支持结构化生成——在 Decode 阶段通过 JSON Schema 或正则表达式约束 token 的生成，保证输出格式的正确性。实现方式是在每一步 Decode 时，根据约束规则计算合法的 token 集合，将不合法的 token 的概率设为 0，然后从合法 token 中采样。SGLang 使用有限状态机（FSM）来高效地跟踪约束状态，避免了暴力枚举所有合法 token 的开销。这在 Agent 工具调用（要求输出 JSON）、代码生成（要求语法正确）等场景下非常有用。</p>
+
+          <h3>前端语言：SGLang DSL</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">SGLang 提供了 Python DSL 来描述复杂的 LLM 程序。核心原语包括：gen（生成）、select（选择）、fork（分支）、image（多模态输入）。通过这些原语，用户可以用几行代码描述需要多次 LLM 调用的复杂流程。SGLang 的编译器会自动分析程序的依赖关系，将可以并行的 LLM 调用合并为一个批次，最大化 GPU 利用率。例如，一个需要对 10 个文档分别进行摘要的程序，SGLang 会自动将 10 次 LLM 调用合并为一个批次并行执行。</p>
+
+          <h3>与 vLLM 的对比</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">SGLang 和 vLLM 都是优秀的开源 LLM 推理引擎，各有侧重：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>SGLang 的优势：</strong>（1）RadixAttention 的前缀缓存更灵活，支持多级共享和更细粒度的淘汰；（2）原生支持结构化生成，在 JSON/代码生成场景下效率更高；（3）前端语言可以自动并行化复杂的 LLM 程序，在多轮调用场景下吞吐量更高。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>vLLM 的优势：</strong>（1）社区更大，模型支持更广泛；（2）PagedAttention 的 Copy-on-Write 在并行采样场景下更高效；（3）部署生态更成熟（OpenAI 兼容 API、Docker 镜像、Kubernetes 集成）。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">选择建议：简单的单轮推理或需要广泛的模型兼容性选 vLLM；复杂的多轮/多步骤 LLM 程序或需要结构化生成选 SGLang。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-tree"></i><span><strong>RadixAttention</strong>：基于 Radix Tree 的前缀缓存，支持多级共享和灵活淘汰，缓存命中率更高</span></li>
+            <li><i class="fas fa-code"></i><span><strong>结构化生成</strong>：原生支持 JSON Schema 和正则表达式约束解码，保证输出格式正确</span></li>
+            <li><i class="fas fa-code-branch"></i><span><strong>自动并行化</strong>：前端 DSL 编译器自动分析依赖关系，将可并行的 LLM 调用合并为批次</span></li>
+            <li><i class="fas fa-layer-group"></i><span><strong>Continuous Batching</strong>：迭代级调度，支持动态请求添加/移除</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>Chunked Prefill</strong>：长 Prompt 拆分执行，消除 Prefill Stall</span></li>
+            <li><i class="fas fa-project-diagram"></i><span><strong>TP 并行</strong>：支持 Tensor Parallelism，多 GPU 部署</span></li>
+            <li><i class="fas fa-rocket"></i><span><strong>多轮调用高效</strong>：在 Agent、RAG、思维链等多轮场景下吞吐量比 vLLM 高 3-5x</span></li>
+            <li><i class="fas fa-eye"></i><span><strong>多模态支持</strong>：支持 Vision-Language 模型（如 LLaVA、GPT-4V 格式）</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：SGLang 的 RadixAttention 和 vLLM 的 Prefix Caching 有什么区别？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：核心思想相同（缓存共享前缀的 KV Cache），但实现方式不同。vLLM 使用哈希表管理前缀缓存，支持精确匹配。SGLang 使用 Radix Tree（基数树），支持最长前缀匹配和多级共享。Radix Tree 的优势在于：（1）可以匹配「前缀 A 是前缀 B 的子串」的情况，缓存命中率更高；（2）淘汰策略更灵活（LRU 在树节点级别）；（3）支持多级前缀（系统提示词、RAG 上下文、用户输入分别缓存）。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：SGLang 的结构化生成是如何实现的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：通过有限状态机（FSM）跟踪约束状态。在每一步 Decode 时，FSM 根据当前状态和约束规则（JSON Schema 或正则表达式）计算合法的 token 集合，将不合法 token 的 logits 设为 -inf，然后从合法 token 中采样。FSM 的状态转移是 O(1) 的，因此约束解码的额外开销很小。SGLang 还会预编译约束规则为 FSM，避免运行时解析开销。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：SGLang 的自动并行化是如何工作的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：SGLang 的前端编译器会分析 DSL 程序的数据依赖关系。如果多个 LLM 调用之间没有依赖（例如对 10 个文档分别摘要），编译器会将它们合并为一个批次并行执行。如果有依赖（例如先检索再生成），则按顺序执行。这种自动并行化对用户透明——用户只需用 DSL 描述逻辑流程，编译器自动优化执行计划。在多轮 Agent 场景下，这种优化可以将吞吐量提升 3-5 倍。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：SGLang 支持哪些模型？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：SGLang 支持主流的 LLM 架构，包括 LLaMA/LLaMA-2/3、Mistral、Qwen、ChatGLM、Gemma、Phi 等。在多模态方面支持 LLaVA、GPT-4V 格式的 Vision-Language 模型。量化方面支持 GPTQ、AWQ、FP8 等。模型支持范围与 vLLM 大致相当，但某些较新的模型可能需要等待适配。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：什么时候应该选择 SGLang 而不是 vLLM？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：以下场景优先选择 SGLang：（1）多轮 LLM 程序——Agent、RAG、思维链等需要多次 LLM 调用的场景，SGLang 的自动并行化优势明显；（2）结构化生成——需要输出 JSON、代码等严格格式的场景，SGLang 的约束解码更高效；（3）前缀共享复杂——多级前缀（系统提示词 + RAG 上下文 + 用户输入）的场景，RadixAttention 的缓存命中率更高。以下场景优先选择 vLLM：（1）简单的单轮推理；（2）需要广泛的模型兼容性；（3）需要成熟的部署生态（Kubernetes、监控等）。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2312.07104" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>SGLang: Efficient Execution of Structured Language Model Programs (Zheng et al., 2024)</a></li>
+            <li><a href="https://github.com/sgl-project/sglang" target="_blank" rel="noopener"><i class="fas fa-github"></i>SGLang 官方仓库</a></li>
+            <li><a href="https://sgl-project.github.io/" target="_blank" rel="noopener"><i class="fas fa-book"></i>SGLang 官方文档</a></li>
+            <li><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>PagedAttention (Kwon et al., SOSP 2023) — vLLM 核心论文</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

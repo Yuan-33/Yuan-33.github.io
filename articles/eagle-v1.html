@@ -63,7 +63,14 @@
               </ul>
             </li>
             <li class="nav-level2">
-              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理引擎</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="vllm" data-href="/articles/vllm.html"><i class="fas fa-file-alt nav-icon"></i><span>vLLM</span></li>
+                <li class="nav-level3" data-page="sglang" data-href="/articles/sglang.html"><i class="fas fa-file-alt nav-icon"></i><span>SGLang</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-calendar-check nav-icon"></i><span>调度策略</span></div>
               <ul class="nav-children">
                 <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
                 <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
@@ -167,6 +174,213 @@
             <li><a href="https://github.com/SafeAILab/EAGLE" target="_blank" rel="noopener"><i class="fas fa-github"></i>SafeAILab/EAGLE — 官方实现与预训练模型</a></li>
             <li><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Fast Inference from Transformers via Speculative Decoding (Leviathan et al., 2023) — 投机解码原始论文</a></li>
             <li><a href="https://arxiv.org/abs/2302.01318" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Accelerating Large Language Model Decoding with Speculative Sampling (Chen et al., 2023) — DeepMind 投机解码</a></li>
+          </ul>
+
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eagle-v1 — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;">
+        <i class="fas fa-microchip icon"></i>
+        AI-Infra 技术研究
+      </a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+
+  <!-- Layout -->
+  <div class="layout">
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <!-- Level 1: 大模型推理 -->
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1">
+            <span class="arrow open">&#9654;</span>
+            <i class="fas fa-brain nav-icon"></i>
+            <span>大模型推理</span>
+          </div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3 active" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理引擎</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="vllm" data-href="/articles/vllm.html"><i class="fas fa-file-alt nav-icon"></i><span>vLLM</span></li>
+                <li class="nav-level3" data-page="sglang" data-href="/articles/sglang.html"><i class="fas fa-file-alt nav-icon"></i><span>SGLang</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-calendar-check nav-icon"></i><span>调度策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-code-branch nav-icon"></i><span>预训练范式</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <!-- Level 1: 量化 -->
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1">
+            <span class="arrow">&#9654;</span>
+            <i class="fas fa-compress-arrows-alt nav-icon"></i>
+            <span>量化</span>
+          </div>
+          <ul class="nav-children">
+            <!-- 预留，暂无子页面 -->
+          </ul>
+        </li>
+      </ul>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle">
+          <i class="fas fa-moon"></i>
+          <div class="toggle-track">
+            <div class="toggle-thumb"></div>
+          </div>
+          <span id="themeLabel">深色模式</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span>
+          <a href="#">大模型推理</a><span>›</span>
+          <a href="#">投机解码</a><span>›</span>
+          <span style="color:var(--text-primary)">Eagle-v1</span>
+        </div>
+        <div class="content-card">
+          <h1>Eagle-v1</h1>
+          <div class="subtitle">Speculative Decoding — Feature-Level Autoregressive Draft</div>
+          <div class="intro">Eagle（Extrapolation Algorithm for Greater Language-model Efficiency）是SafeAI Lab于2024年提出的特征级投机解码框架，核心创新是在主模型倒数第二层隐藏状态空间进行自回归建模，通过引入提前一个时间步的Token序列解决特征不确定性问题。其仅用1个Transformer Layer的轻量Draft Head，实现了2.7x-3.5x的端到端无损加速，被第三方评测为同期最快的投机解码方案。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1的核心突破来自对投机解码的两个关键洞察：<strong>其一，在主模型倒数第二层（second-to-top-layer）的特征级别做自回归，比Token级别更直接、可预测性更强</strong>；<strong>其二，特征级别自回归的固有不确定性，是限制投机解码性能的核心瓶颈，而提前一个时间步的Token序列可有效消解该不确定性</strong>。基于此，Eagle-v1摒弃了传统Token级别的Draft范式，在连续的特征空间实现了高精度的多Token自回归预测。</p>
+
+          <h3>为什么选择倒数第二层特征空间？</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1选择主模型倒数第二层隐藏状态作为Draft基础，而非最后一层或Token Embedding，是经过严格实验验证的核心设计：
+          <br>• 最后一层隐藏状态的语义信息被高度压缩，仅服务于下一个Token的预测，丢失了丰富的上下文时序特征；
+          <br>• Token Embedding空间是离散、高维稀疏的，相邻Token语义跳跃大，预测不确定性极高；
+          <br>• 倒数第二层隐藏状态是连续、低维稠密的，保留了完整的上下文语义与时序演化规律，相邻位置的特征变化平滑可预测，是自回归外推的最优载体。
+          </p>
+
+          <h3>算法流程详解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1的完整推理流程分为Draft阶段和验证阶段，原生支持链式多Token自回归与Tree Attention树状Draft，核心流程严格对齐官方论文实现：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>Draft 阶段：</strong>（1）主模型执行一次标准前向传播，获取倒数第二层最后一个Token位置的隐藏状态 h_t；（2）轻量自回归头接收双路输入：前序时刻的特征序列，以及提前一个时间步的Token序列（经主模型Embedding层映射），二者拼接后经线性投影对齐维度，再通过1个完整的Transformer Decoder Layer（含Multi-Head Self-Attention与FFN）做自回归建模，预测下一时刻的隐状态 h_{t+1}；（3）预测得到的隐状态直接复用主模型的LM Head，解码生成Draft Token x_{t+1}；（4）将x_{t+1}的Embedding与预测隐状态拼接，重复自回归流程，结合Tree Attention可实现3次前向生成10个候选Token的Draft树，最终生成γ个Draft Token。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>验证阶段：</strong>将完整Draft序列与原始输入拼接，主模型执行一次前向传播，并行验证所有γ个Draft Token。通过标准拒绝采样机制完成校验：以概率 min(1, p_M(x)/q(x)) 接受Draft Token x；若拒绝，则从修正分布 max(0, p_M(x)-q(x)) 归一化后重新采样。该机制从数学上严格保证了最终输出分布与原生自回归解码完全一致，实现真正的无损加速。</p>
+
+          <h3>Draft Head 架构细节</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1的自回归头（Autoregression Head）设计极致轻量，核心由两部分构成：
+          <br>1. <strong>线性投影层</strong>：将「前序特征序列 + 提前一个时间步的Token Embedding序列」的拼接向量，映射到与主模型隐藏维度一致的空间，完成输入对齐；
+          <br>2. <strong>1个完整的Transformer Decoder Layer</strong>：标准的Decoder结构，包含带因果掩码的多头自注意力机制（Multi-Head Self-Attention）与前馈网络（FFN），用于建模特征序列的时序依赖关系。
+          <br>整体新增参数量不足主模型的1%（LLaMA2-7B仅新增0.24B参数，70B模型仅新增0.99B参数），推理额外开销可忽略不计，且训练与部署成本极低。</p>
+
+          <h3>训练目标与损失函数</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1采用双目标联合损失训练自回归头，训练过程中主模型权重完全冻结，仅更新Draft Head参数：
+          <br>• <strong>核心损失：Smooth L1回归损失</strong>：以主模型真实推理产出的连续隐藏状态为监督信号，拟合上下文特征的时序演化规律，是特征级预测的核心优化目标；
+          <br>• <strong>辅助损失：交叉熵分类损失</strong>：对齐预测隐状态经LM Head解码后的Token分布，降低自回归过程中的误差累积，提升长序列Draft的稳定性。
+          <br>训练仅需通用对话语料（如ShareGPT、Alpaca等），单张A100训练2-4小时即可收敛，训练门槛极低。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-feather"></i><span><strong>极致轻量的自回归头</strong>：仅线性投影层 + 1个完整Transformer Decoder Layer，参数量不足主模型的1%，推理额外开销可忽略，单卡即可轻松部署</span></li>
+            <li><i class="fas fa-link"></i><span><strong>倒数第二层特征级Draft</strong>：利用主模型倒数第二层隐藏状态的低不确定性与丰富语义，结合提前一个时间步的Token序列，实现远超Token级方案的预测精度</span></li>
+            <li><i class="fas fa-project-diagram"></i><span><strong>原生支持多Token与树状Draft</strong>：通过链式自回归生成连续Draft序列，结合Tree Attention实现3次前向生成10个候选Token的Draft树，大幅提升Draft效率</span></li>
+            <li><i class="fas fa-chart-line"></i><span><strong>行业领先的接受率</strong>：在MT-Bench基准上平均接受率达0.75-0.85，显著优于Medusa等Token级方法，在代码生成、数学推理等复杂任务上优势更明显</span></li>
+            <li><i class="fas fa-shield-halved"></i><span><strong>严格无损加速</strong>：通过数学可证明的拒绝采样机制，保证输出分布与原生自回归完全一致，无任何生成质量损失，可用于对输出一致性要求极高的场景</span></li>
+            <li><i class="fas fa-cogs"></i><span><strong>部署灵活兼容性强</strong>：无需独立部署Draft模型，可通过社区方案快速适配vLLM、SGLang等主流推理框架，官方原生集成已覆盖TensorRT-LLM、Intel Extension for Transformers等</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>极致的端到端加速</strong>：在LLaMA2-Chat 70B上实现2.7x-3.5x的端到端延迟加速，吞吐量翻倍；在13B模型上实现3x加速，显著优于同期投机解码方案</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Eagle-v1 和 Medusa 的核心区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：核心区别在于Draft的基础空间与建模范式完全不同。其一，Draft空间不同：Medusa在Token空间进行并行预测，直接输出多个位置的Token ID；而Eagle-v1在主模型倒数第二层的连续特征空间进行自回归预测，先预测隐状态再映射为Token，特征空间的低不确定性使其预测精度远超Token级方案。其二，建模范式不同：Medusa的多个Head是并行独立预测不同位置的Token，无时序依赖；而Eagle-v1的Draft Head是自回归的，当前预测依赖前一个时刻的预测结果，更贴合LLM原生的生成逻辑，长序列Draft稳定性更强。其三，参数量与训练成本不同：Medusa通常需要多个并行Head，而Eagle-v1仅需1个Transformer Layer，训练成本更低，推理开销更小。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：Eagle-v1 如何保证加速是无损的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：通过标准的拒绝采样（Rejection Sampling）机制实现严格无损。对于每个Draft Token x，计算主模型的目标分布概率 p_M(x) 和Draft分布的概率 q(x)，以概率 min(1, p_M(x)/q(x)) 接受该Token；若拒绝，则从修正分布 max(0, p_M(x)-q(x)) 归一化后重新采样。该机制有严格的数学证明，可保证最终输出的Token序列完全服从主模型原生自回归的分布，不会引入任何分布偏移，实现真正的无损加速。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Eagle-v1 Draft Head 的训练数据从哪里来？训练成本如何？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：训练数据来自主模型在通用指令数据集（如ShareGPT、Alpaca等）上的前向传播结果。具体流程为：用主模型对训练语料执行前向传播，收集每个位置的倒数第二层隐藏状态作为输入，下一个位置的倒数第二层隐藏状态作为回归标签，同时收集主模型LM Head输出的Token分布作为分类监督信号。训练成本极低：以LLaMA2-13B为例，单张A100训练2-4小时即可收敛，且训练过程中主模型权重完全冻结，无需修改主模型任何结构，适配成本极低。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：Eagle-v1 的加速比受哪些因素影响？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：加速比核心受4个关键因素影响：（1）Draft接受率：接受率越高，每个验证轮次中被接受的Token越多，加速比越大；接受率与任务类型强相关，代码生成>数学推理>开放式对话。（2）Draft长度γ：γ越大，单次Draft生成的Token越多，但长序列Draft的拒绝概率会上升，工业界最优γ通常设置为3-6，结合Tree Attention可进一步提升上限。（3）主模型规模：模型越大，单次前向传播的延迟越高，投机解码的相对加速比越明显，因此Eagle-v1在70B大模型上的加速效果优于7B小模型。（4）Batch Size：投机解码在Batch=1的对话场景下效果最好，大Batch场景下，主模型前向的计算开销被摊薄，投机解码的相对加速优势会有所减弱。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：为什么 Eagle-v1 在代码生成任务上加速比特别高？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：核心原因是代码场景的特征可预测性远高于自然语言。其一，代码具有高度的局部模式重复性，如缩进、括号匹配、关键字序列、固定API调用范式等，上下文的时序规律极强，Draft Head对特征的预测准确率显著提升。其二，代码的语法约束严格，下一个Token的候选空间被大幅压缩，特征空间的不确定性更低，自回归外推的精度更高。实验数据表明，Eagle-v1在HumanEval代码生成基准上的加速比可达3.5-4.0x，显著高于开放式对话场景的2.5-3.0x。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2401.15077" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024) — 官方核心论文</a></li>
+            <li><a href="https://github.com/SafeAILab/EAGLE" target="_blank" rel="noopener"><i class="fas fa-github"></i>SafeAILab/EAGLE — 官方实现与预训练权重（v1分支为Eagle-v1源码）</a></li>
+            <li><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Fast Inference from Transformers via Speculative Decoding (Leviathan et al., 2023) — 投机解码原始论文</a></li>
+            <li><a href="https://arxiv.org/abs/2302.01318" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Accelerating Large Language Model Decoding with Speculative Sampling (Chen et al., 2023) — DeepMind 投机采样经典论文</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
