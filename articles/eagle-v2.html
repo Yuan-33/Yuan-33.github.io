@@ -55,10 +55,9 @@
               <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
               <ul class="nav-children">
                 <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
-                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3 active" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
                 <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
                 <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
-                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
                 <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
               </ul>
             </li>
@@ -123,59 +122,87 @@
         <div class="content-card">
           <h1>Eagle-v2</h1>
           <div class="subtitle">Speculative Decoding — Dynamic Draft Tree</div>
-          <div class="intro">Eagle-v2 在 Eagle-v1 的基础上引入了动态 Draft Tree 结构，根据每个 Draft token 的置信度分数自适应调整树的宽度和深度，将计算资源集中在高概率路径上。这一改进使 Eagle-v2 的接受率和端到端加速比进一步提升，成为 2024 年投机解码的 SOTA 方案。</div>
+          <div class="intro">Eagle-v2（EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees）在 Eagle-v1 的基础上，核心发现是 Draft token 的接受率不仅与位置相关，还与上下文高度相关。利用 EAGLE Draft 模型的良好校准性（置信度分数能以小误差近似真实接受率），Eagle-v2 引入了上下文感知的动态 Draft Tree，将计算资源集中在高概率路径上，实现了 3.05x-4.26x 的端到端无损加速，比 Eagle-v1 快 20%-40%。</div>
 
           <h2><i class="fas fa-book"></i> 核心改进</h2>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1 使用固定的树结构进行 Draft，所有分支的宽度和深度相同。Eagle-v2 发现不同位置的 Draft token 置信度差异很大——高置信度 token 更可能被接受，应该扩展更深；低置信度 token 应该被剪枝。Eagle-v2 根据 Draft Head 输出的概率动态构建树，实现了更高效的计算分配。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1 使用静态 Draft Tree，隐式假设 Draft token 的接受率仅取决于其位置。Eagle-v2 通过实验推翻了这一假设：接受率还与上下文强相关——不同上下文下，同一位置的 Draft token 接受率差异很大。基于这一洞察，Eagle-v2 利用 EAGLE Draft 模型的良好校准性（置信度分数与真实接受率误差很小），提出上下文感知的动态 Draft Tree，根据每个节点的置信度自适应调整树结构，实现更高效的计算分配。</p>
 
-          <h3>从固定树到动态树的演进</h3>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1 的固定树结构存在明显的计算浪费：假设树宽为 w、深度为 d，则总节点数为 w^d，但实际被主模型接受的路径通常只有一条。大量低概率分支的 Draft 和验证都是无效计算。Eagle-v2 的核心思想是「把计算花在刀刃上」——根据 Draft Head 输出的 token 概率分布，动态决定每个节点应该扩展多少个子节点（宽度）以及是否继续向下扩展（深度）。具体地，Eagle-v2 将所有候选 token 按概率降序排列，设置一个概率阈值 θ：概率 ≥ θ 的 token 获得子节点继续扩展，概率 < θ 的 token 作为叶节点终止。同时，每个节点的子节点数量也有上限约束（通常 2-4 个），以控制总节点数不超过预算。</p>
+          <h3>从静态树到动态树的演进</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1 的静态树结构存在明显的计算浪费：所有分支的宽度和深度固定，低置信度分支消耗了大量无效计算。Eagle-v2 的核心思想是「资源向高概率路径倾斜」——根据 Draft Head 输出的 token 概率分布，动态决定每个节点的子节点数量（宽度）和是否继续扩展（深度）。具体来说，Eagle-v2 将候选 token 按概率降序排列，设置概率阈值 θ：概率 ≥ θ 的 token 扩展子节点，概率 < θ 的作为叶节点终止。同时，每个节点的子节点数量有上限（通常 2-4 个），总节点数受预算约束（通常 20-60 个），在预算内最大化期望接受 token 数量。</p>
 
           <h3>Tree Attention 验证机制详解</h3>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Tree Attention 是 Eagle-v2 验证阶段的核心优化。传统的投机解码每次只验证一条 Draft 序列，而树结构的 Draft 包含多条分支路径。Tree Attention 将整个 Draft Tree 组织为一个批次进行验证：</p>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>树的线性化：</strong>将树结构展平为一个序列，每个节点维护一个 mask 向量，标识它可以 attend 到哪些祖先节点。根节点 attend 到所有前缀 token，子节点只 attend 到其路径上的祖先节点和前缀 token。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Tree Attention 是 Eagle-v2 验证阶段的核心优化，支持将整个 Draft Tree 作为一个批次进行并行验证。其关键设计包括：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>树的线性化：</strong>将树结构展平为一个序列，每个节点维护一个 mask 向量，标识它可以 attend 到哪些祖先节点——根节点 attend 到所有前缀 token，子节点只 attend 到其路径上的祖先节点和前缀 token。</p>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>位置编码处理：</strong>同一深度的节点共享相同的相对位置，不同深度的节点位置递增。这保证了注意力计算的正确性，同时避免了位置编码冲突。</p>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>验证策略：</strong>主模型对整个树进行一次前向传播，得到每个节点的输出分布。然后从根到叶遍历，对每个节点比较主模型分布和 Draft 分布：若接受则继续向下验证子节点；若拒绝则从该节点的修正分布中采样，该分支以下的所有子节点全部丢弃。最终得到一条从根到某叶节点的接受路径，路径上的所有 token 即为本轮生成的结果。</p>
 
           <h3>动态树的构建算法</h3>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v2 的动态树构建是一个贪心过程：（1）从根节点开始，Draft Head 生成第一层候选 token 及其概率；（2）按概率排序，选择 Top-k 个候选作为第一层子节点；（3）对每个子节点，Draft Head 继续自回归生成下一层候选；（4）根据概率阈值 θ 决定是否扩展——高概率节点继续扩展，低概率节点终止；（5）重复直到达到最大深度或节点预算。树的总节点数受预算约束（通常 20-60 个节点），在预算内最大化期望接受 token 数量。论文中还引入了「置信度传播」机制——父节点的置信度会影响子节点的扩展决策，高置信度路径获得更多的计算资源。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v2 的动态树构建是一个贪心迭代过程，核心是从根节点出发，每一步都全局筛选概率最高的候选分支、淘汰低置信度路径，最终生成一棵非对称、高命中的候选token树，彻底解决了Eagle-v1固定树结构的算力浪费问题。</p>
+
+          <div style="text-align:center;margin:24px 0;">
+            <img 
+              src="/assets/images/speculative_decoding/eagle-v2.png" 
+              alt="Eagle-v2 动态树构建流程示意图" 
+              style="max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);"
+            >
+            <p style="color:var(--text-secondary);font-size:14px;margin-top:8px;">图：Eagle-v2 动态树构建、树掩码生成与投机解码全流程示意图</p>
+          </div>
+
+          <ol style="color:var(--text-secondary);line-height:1.8;margin-bottom:24px;padding-left:20px;">
+            <li style="margin-bottom:12px;"><strong>根节点初始化</strong>：以Target大模型最后一步输出的采样token作为树的根节点，同时传入Target模型输出的最后一层隐状态，作为Draft模型的启动输入。</li>
+            <li style="margin-bottom:12px;"><strong>首层候选生成</strong>：Draft模型基于根节点隐状态完成前向推理，通过Draft Head输出token概率分布，取Top-K个概率最高的token作为树的第一层叶子节点，同步记录每个节点的累计对数概率、父节点索引。</li>
+            <li style="margin-bottom:12px;"><strong>全局贪心分支筛选</strong>：对当前层所有候选节点的累计概率做全局排序，仅保留Top-K个置信度最高的分支，直接淘汰其余低概率路径，避免算力浪费在低命中的候选上。</li>
+            <li style="margin-bottom:12px;"><strong>层级迭代扩展</strong>：以筛选后的Top-K分支作为新的父节点，重复「前向推理→概率输出→Top-K采样→全局排序筛选」的流程，迭代Depth次，最终生成一棵深度为Depth、总候选token数固定的动态树。</li>
+            <li style="margin-bottom:12px;"><strong>树结构元数据生成</strong>：树构建完成后，同步生成3个核心元数据，支撑Target模型的单步并行验证：
+              <ul style="margin-top:8px;padding-left:20px;">
+                <li><code>tree_mask</code>：树的因果注意力掩码，确保每个节点仅能关注自身的祖先路径，杜绝跨分支信息泄露</li>
+                <li><code>tree_position_ids</code>：每个节点在树中的相对位置编码，完美适配RoPE位置编码规则</li>
+                <li><code>retrieve_indices</code>：树中所有完整「根→叶子」路径的索引，用于Target模型验证后的最优路径选择</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:12px;"><strong>批量并行验证</strong>：将整棵树的所有候选token一次性输入Target模型，通过树注意力机制完成单步并行推理，一次性验证所有候选token的概率，无需逐token自回归，最大化利用大模型的并行算力。</li>
+          </ol>
+
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">这套动态树构建算法，相比Eagle-v1的固定二叉树，在相同的Draft算力开销下，候选token的平均置信度显著提升，同时大幅降低了低概率分支的无效算力开销，是Eagle-v2实现更高Block Efficiency、更快端到端推理速度的核心设计。</p>
+
+
 
           <h3>与 Eagle-v1 的性能对比</h3>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在相同计算预算下（例如最大树节点数 50），Eagle-v2 的有效 Draft token 数量比 Eagle-v1 多 20-40%。具体数据：在 Vicuna-7B 上，Eagle-v1 的平均接受长度约 2.8 token/轮，Eagle-v2 提升到 3.5 token/轮；在 Vicuna-13B 上，从 3.1 提升到 3.9；在 Vicuna-70B 上，从 3.4 提升到 4.2。端到端加速方面，Eagle-v2 在 7B 模型上实现 3.0x，在 13B 上实现 3.5x，在 70B 上实现 4.0x 加速。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">论文在三个 LLM 系列（Vicuna、LLaMA2-Chat、Mixtral）、六个任务（对话、代码生成、数学推理等）上的评估显示，Eagle-v2 实现了 3.05x-4.26x 的加速比，比 Eagle-v1 快 20%-40%。具体数据：在 Vicuna-13B 上，Eagle-v1 的加速比约 3.0x，Eagle-v2 提升至 3.5x-4.0x；在 LLaMA2-Chat 70B 上，从 2.7x-3.5x 提升至 3.5x-4.26x。</p>
 
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-tree"></i><span><strong>动态树构建</strong>：根据 Draft token 概率动态调整树的形状，高概率路径更深更宽，低概率路径提前终止，最大化有效 Draft 数量</span></li>
-            <li><i class="fas fa-arrows-split-up-and-left"></i><span><strong>Tree Attention 验证</strong>：将整个 Draft Tree 组织为一个批次，通过一次前向传播验证所有分支，充分利用 GPU 并行能力，验证开销与固定树相同</span></li>
-            <li><i class="fas fa-gauge-high"></i><span><strong>接受率提升 20-40%</strong>：相比 Eagle-v1 的固定树结构，动态树在各类任务上平均接受率提升 20-40%，尤其在长文本生成场景下优势更大</span></li>
+            <li><i class="fas fa-tree"></i><span><strong>上下文感知动态树构建</strong>：根据 Draft token 概率动态调整树的形状，高概率路径更深更宽，低概率路径提前终止，最大化有效 Draft 数量</span></li>
+            <li><i class="fas fa-arrows-split-up-and-left"></i><span><strong>Tree Attention 并行验证</strong>：将整个 Draft Tree 组织为一个批次，通过一次前向传播验证所有分支，充分利用 GPU 并行能力，验证开销与静态树相当</span></li>
+            <li><i class="fas fa-gauge-high"></i><span><strong>接受率提升 20-40%</strong>：相比 Eagle-v1 的静态树结构，动态树在各类任务上平均接受率提升 20-40%，尤其在长文本生成场景下优势更大</span></li>
             <li><i class="fas fa-sliders"></i><span><strong>可配置树大小</strong>：支持设置最大树节点数（通常 20-60），在延迟与吞吐之间灵活权衡，适应不同部署场景</span></li>
-            <li><i class="fas fa-tachometer-alt"></i><span><strong>端到端加速</strong>：在 Vicuna-7B/13B/70B 上实现 3.0-4.0x 加速，在长文本生成场景下加速比更高</span></li>
-            <li><i class="fas fa-code-branch"></i><span><strong>兼容 Eagle-v1</strong>：Draft Head 架构与 Eagle-v1 完全相同，仅修改了树构建策略，已有 Eagle-v1 的部署可直接升级</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>端到端加速 3.05x-4.26x</strong>：在三个 LLM 系列、六个任务上实现 3.05x-4.26x 无损加速，比 Eagle-v1 快 20%-40%</span></li>
+            <li><i class="fas fa-code-branch"></i><span><strong>完全兼容 Eagle-v1</strong>：Draft Head 架构与 Eagle-v1 完全相同，仅修改了推理阶段的树构建策略，已有 Eagle-v1 的预训练权重可直接升级使用</span></li>
           </ul>
 
           <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
           <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
-            <p style="margin-bottom:16px;"><strong>Q1：Eagle-v2 的动态树和 Medusa 的固定树有什么区别？</strong></p>
-            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Medusa 使用固定的树拓扑——预先定义好树的形状（例如宽度 5、深度 3），所有分支等概率扩展，不考虑 Draft token 的实际置信度。Eagle-v2 的动态树根据 Draft Head 输出的实际概率来决定每个节点的扩展策略：高概率节点获得更多子节点和更深的扩展，低概率节点提前终止。这使得 Eagle-v2 在相同的节点预算下，期望接受 token 数量显著多于固定树。</p>
+            <p style="margin-bottom:16px;"><strong>Q1：Eagle-v2 的动态树和 Eagle-v1 的静态树有什么核心区别？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：核心区别在于树结构的构建逻辑。Eagle-v1 使用静态树，隐式假设 Draft token 的接受率仅与位置相关，所有分支的宽度和深度预先固定，不考虑上下文差异。Eagle-v2 发现接受率还与上下文强相关，利用 Draft 模型的良好校准性（置信度分数能近似真实接受率），根据每个节点的实际置信度动态调整树结构：高概率节点获得更多子节点和更深的扩展，低概率节点提前终止。这使得在相同的节点预算下，Eagle-v2 的期望接受 token 数量显著多于静态树。</p>
 
             <p style="margin-bottom:16px;"><strong>Q2：Tree Attention 的 mask 是如何设计的？</strong></p>
-            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Tree Attention 的核心是因果 mask 的设计。将树线性化后，每个节点有一个 mask 向量：对于树中的节点 u 和 v，mask[u][v] = 1 当且仅当 v 是 u 的祖先节点或 v 位于 u 的左侧同一层级。这保证了每个节点只能看到其路径上的祖先和已经验证过的同层节点，保持了因果性。实际实现中，mask 矩阵是稀疏的，可以通过 sparse attention 优化计算效率。</p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Tree Attention 的核心是因果 mask 的设计。将树线性化后，每个节点 u 有一个 mask 向量：对于树中的节点 u 和 v，mask[u][v] = 1 当且仅当 v 是 u 的祖先节点，或 v 位于 u 的左侧同一层级。这保证了每个节点只能看到其路径上的祖先和已经验证过的同层节点，保持了因果性。实际实现中，mask 矩阵是稀疏的，可以通过 sparse attention 优化计算效率。</p>
 
             <p style="margin-bottom:16px;"><strong>Q3：动态树的概率阈值 θ 如何确定？</strong></p>
             <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：θ 的选择需要在「树的覆盖率」和「树的深度」之间权衡。θ 过高会导致树太窄（只有很少的分支），错过一些可能被接受的 token；θ 过低会导致树太宽太浅（很多低概率分支），浪费计算资源。论文中通过在验证数据集上进行网格搜索来确定最优 θ，通常在 0.1-0.3 之间。实践中也可以根据节点预算动态调整 θ：先用一个初始 θ 构建树，如果节点数未达预算则降低 θ 继续扩展。</p>
 
             <p style="margin-bottom:16px;"><strong>Q4：Eagle-v2 的验证开销是否会因为树变大而增加？</strong></p>
-            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：不会。Tree Attention 的验证开销取决于树的总节点数，而非分支数。Eagle-v2 设定了固定的节点预算（例如 50 个节点），与 Eagle-v1 的固定树节点数相同。因此验证阶段的计算量不变，但由于动态树的接受率更高，每个验证轮次的有效输出 token 更多，所以端到端加速比更大。</p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：不会。Eagle-v2 设定了固定的节点预算（例如 50 个节点），与 Eagle-v1 的静态树节点数相同。因此验证阶段的计算量不变，但由于动态树的接受率更高，每个验证轮次的有效输出 token 更多，所以端到端加速比更大。</p>
 
-            <p style="margin-bottom:16px;"><strong>Q5：Eagle-v2 相比 EAGLE-1 的训练成本有变化吗？</strong></p>
-            <p style="color:var(--text-secondary);line-height:1.8;">A：没有。Eagle-v2 的 Draft Head 架构与 Eagle-v1 完全相同，仅修改了推理阶段的树构建策略（从固定树改为动态树）。因此不需要重新训练 Draft Head，已有的 Eagle-v1 预训练权重可以直接用于 Eagle-v2。这是一个重要的工程优势——只需修改推理代码，无需额外训练成本。</p>
+            <p style="margin-bottom:16px;"><strong>Q5：Eagle-v2 相比 Eagle-v1 的训练成本有变化吗？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：没有。Eagle-v2 的 Draft Head 架构与 Eagle-v1 完全相同，仅修改了推理阶段的树构建策略（从静态树改为动态树）。因此不需要重新训练 Draft Head，已有的 Eagle-v1 预训练权重可以直接用于 Eagle-v2。这是一个重要的工程优势——只需修改推理代码，无需额外训练成本。</p>
           </div>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="https://arxiv.org/abs/2406.16858" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees (Li et al., 2024)</a></li>
-            <li><a href="https://github.com/SafeAILab/EAGLE" target="_blank" rel="noopener"><i class="fas fa-github"></i>SafeAILab/EAGLE — EAGLE-2 官方实现</a></li>
-            <li><a href="https://arxiv.org/abs/2401.15077" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-1: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2406.16858" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees (Li et al., 2024) — 官方核心论文</a></li>
+            <li><a href="https://github.com/SafeAILab/EAGLE" target="_blank" rel="noopener"><i class="fas fa-github"></i>SafeAILab/EAGLE — 官方实现（默认分支包含 EAGLE-2/3）</a></li>
+            <li><a href="https://arxiv.org/abs/2401.15077" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-1: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024) — Eagle-v1 基础论文</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

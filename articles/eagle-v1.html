@@ -131,6 +131,14 @@
           <h3>为什么选择特征空间而非 Token 空间？</h3>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle 的核心洞察来自对 LLM 内部表征的分析。研究发现，token embedding 空间是离散的、高维稀疏的，相邻 token 之间的语义跳跃很大，导致预测下一个 token 的不确定性很高。而隐藏状态（hidden state）是连续的、低维稠密的，包含了丰富的上下文语义信息，相邻位置的特征变化更加平滑。具体来说，在 token 空间中，同一个位置可能的下一个 token 有数万个候选，但在特征空间中，下一个位置的隐藏状态可以通过当前特征进行更准确的回归预测。这一发现使得 Eagle 的 Draft Head 可以利用更可预测的特征空间来间接预测 token，大幅提升了 Draft 的准确率。</p>
 
+          <h3>Eagle-v1 模型架构图解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">下图为 Eagle-v1 官方核心推理架构，清晰展示了主模型（Target LLM）与轻量级 Draft Head 的协同流程：主模型输出倒数第二层特征，结合提前一个时间步的 Token Embedding 输入自回归头，完成多 Token 特征级 Draft 生成与验证。</p>
+          <img 
+            src="/assets/images/speculative_decoding/eagle-v1.png" 
+            alt="Eagle-v1 模型架构" 
+            style="max-width: 100%; border-radius: 8px; margin: 12px 0 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.15);"
+          >
+
           <h3>算法流程详解</h3>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle 的完整推理流程分为 Draft 阶段和验证阶段：</p>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>Draft 阶段：</strong>（1）主模型正常运行一次前向传播，得到最后一个 token 位置的隐藏状态 h_t；（2）Draft Head 接收 h_t，通过线性投影层映射到主模型的特征维度，再经过一个 Transformer Block 进行自回归建模；（3）Draft Head 的输出特征经过主模型的 LM Head（共享的）映射为 token 概率分布，采样得到 Draft token x_{t+1}；（4）将 x_{t+1} 的 embedding 与 Draft Head 的输出特征拼接，继续预测 x_{t+2}，重复此过程生成 γ 个 Draft token。</p>
@@ -247,6 +255,7 @@
                 <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
                 <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
                 <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
                 <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
               </ul>
             </li>
@@ -270,12 +279,6 @@
                 <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
                 <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
                 <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
-              </ul>
-            </li>
-            <li class="nav-level2">
-              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-code-branch nav-icon"></i><span>预训练范式</span></div>
-              <ul class="nav-children">
-                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
               </ul>
             </li>
           </ul>
