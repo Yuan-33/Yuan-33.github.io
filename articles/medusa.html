@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KV Cache — AI-Infra 技术研究</title>
+  <title>Medusa — AI-Infra 技术研究</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -118,31 +118,29 @@
         <div class="breadcrumb">
           <a href="/">首页</a><span>›</span>
           <a href="#">大模型推理</a><span>›</span>
-          <span style="color:var(--text-primary)">KV Cache</span>
+          <a href="#">投机解码</a><span>›</span>
+          <span style="color:var(--text-primary)">Medusa</span>
         </div>
         <div class="content-card">
-          <h1>KV Cache</h1>
-          <div class="intro">在自回归生成中缓存历史 Key-Value 张量，避免重复计算，是提升推理吞吐的核心技术。KV Cache 的管理和优化直接决定了大模型推理系统的性能上限，涉及 PagedAttention、Prefix Caching、KV Cache 压缩等关键优化方向。</div>
+          <h1>Medusa</h1>
+          <div class="subtitle">Speculative Decoding — Multiple Decoding Heads</div>
+          <div class="intro">Medusa 是一种无需独立 Draft 模型的投机解码方法，通过在冻结的 LLM 最后一层隐藏状态上添加多个轻量级预测头（Medusa Heads），并行预测未来多个位置的 token，配合 Tree Attention 验证机制实现 2-3 倍推理加速。</div>
 
-          <h2><i class="fas fa-book"></i> 基本原理</h2>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在 Transformer 自回归生成中，每生成一个新 token 都需要对所有历史 token 计算 Attention。如果不缓存，第 n 步需要重算前 n-1 步的 Key 和 Value，时间复杂度为 O(n²)。KV Cache 将每一步计算出的 Key 和 Value 张量缓存下来，下一步只需计算新 token 的 Q/K/V 并与缓存拼接，将每步复杂度降为 O(n)。</p>
-
-          <h2><i class="fas fa-star"></i> 关键技术</h2>
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-gauge-high"></i><span><strong>基础 KV Cache</strong>：缓存每层 Attention 的 Key/Value 张量，避免重复计算历史 token，将推理复杂度从 O(n²) 降至 O(n)</span></li>
-            <li><i class="fas fa-layer-group"></i><span><strong>PagedAttention</strong>（vLLM）：借鉴虚拟内存分页思想，将 KV Cache 划分为固定大小的物理块（Block），按需分配显存，消除预分配导致的内存碎片，显存利用率提升至接近 100%</span></li>
-            <li><i class="fas fa-copy"></i><span><strong>Prefix Caching</strong>：对共享相同前缀（如系统提示词）的多个请求，复用同一份 KV Cache，避免重复计算。在多轮对话、Agent 调用等场景下效果显著</span></li>
-            <li><i class="fas fa-compress"></i><span><strong>KV Cache 压缩</strong>：GQA（Grouped-Query Attention）和 MQA（Multi-Query Attention）通过共享 Attention Head 减少 KV Cache 大小；H₂O、StreamingLLM 等方法通过注意力分数筛选重要 token 进行保留</span></li>
-            <li><i class="fas fa-database"></i><span><strong>显存管理</strong>：KV Cache 是大模型推理的主要显存瓶颈。7B 模型处理 4K 上下文约需 1GB KV Cache，70B 模型则需 10GB+。高效的显存调度策略是高并发推理的关键</span></li>
-            <li><i class="fas fa-exchange-alt"></i><span><strong>Swap 与 Offloading</strong>：当 GPU 显存不足时，可将部分 KV Cache 交换到 CPU 内存或 NVMe SSD，通过异步预取减少延迟影响</span></li>
+            <li><i class="fas fa-robot"></i><span>多头并行预测：在主模型最后一层隐藏状态上叠加多个 Medusa Head，每个头独立预测不同位置的 token</span></li>
+            <li><i class="fas fa-snowflake"></i><span>冻结主干模型：Medusa-1 模式下仅训练新增的预测头，主模型参数完全不动，训练成本极低</span></li>
+            <li><i class="fas fa-tree"></i><span>Tree Attention 验证：将多个候选序列组织为树状结构，通过一次前向传播验证所有分支，最大化 GPU 利用率</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span>即插即用：兼容 LLaMA、Mistral、Vicuna 等主流架构，无需修改原始模型结构</span></li>
+            <li><i class="fas fa-chart-line"></i><span>2-3x 加速：在 Vicuna-7B/13B/33B 上实现 2.2x-3.0x 端到端加速，质量损失可忽略</span></li>
+            <li><i class="fas fa-code-branch"></i><span>Medusa-2 联合训练：进一步微调主干模型与预测头，接受率更高但需要更多训练资源</span></li>
           </ul>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>Efficient Memory Management for Large Language Model Serving with PagedAttention (Kwon et al., 2023)</a></li>
-            <li><a href="#"><i class="fas fa-file-pdf"></i>FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., 2022)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>vLLM — 高性能 LLM 推理引擎（PagedAttention 实现）</a></li>
-            <li><a href="#"><i class="fas fa-book"></i>GQA: Training Generalized Multi-Query Transformer Models (Ainslie et al., 2023)</a></li>
+            <li><a href="#"><i class="fas fa-file-pdf"></i>Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads (Cai et al., 2024)</a></li>
+            <li><a href="#"><i class="fas fa-github"></i>FasterDecoding/Medusa — 官方实现与预训练权重</a></li>
+            <li><a href="#"><i class="fas fa-book"></i>Together AI Blog: Accelerating LLM Inference with Medusa</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

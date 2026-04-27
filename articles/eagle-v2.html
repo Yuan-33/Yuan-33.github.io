@@ -71,6 +71,18 @@
                   <i class="fas fa-file-alt nav-icon"></i>
                   <span>Eagle-v3</span>
                 </li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html">
+                  <i class="fas fa-file-alt nav-icon"></i>
+                  <span>Medusa</span>
+                </li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html">
+                  <i class="fas fa-file-alt nav-icon"></i>
+                  <span>MTP</span>
+                </li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html">
+                  <i class="fas fa-file-alt nav-icon"></i>
+                  <span>N-gram 投机解码</span>
+                </li>
               </ul>
             </li>
           </ul>
@@ -112,20 +124,24 @@
         <div class="content-card">
           <h1>Eagle-v2</h1>
           <div class="subtitle">Speculative Decoding — Dynamic Draft Tree</div>
-          <div class="intro">引入动态 draft tree 结构，根据 token 概率自适应调整树的宽度和深度，显著提升投机接受率。</div>
+          <div class="intro">Eagle-v2 在 Eagle-v1 的基础上引入了动态 Draft Tree 结构，根据每个 Draft token 的置信度分数自适应调整树的宽度和深度，将计算资源集中在高概率路径上。这一改进使 Eagle-v2 的接受率和端到端加速比进一步提升，成为 2024 年投机解码的 SOTA 方案。</div>
+
+          <h2><i class="fas fa-book"></i> 核心改进</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1 使用固定的树结构进行 Draft，所有分支的宽度和深度相同。Eagle-v2 发现不同位置的 Draft token 置信度差异很大——高置信度 token 更可能被接受，应该扩展更深；低置信度 token 应该被剪枝。Eagle-v2 根据 Draft Head 输出的概率动态构建树，实现了更高效的计算分配。</p>
 
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-tree"></i><span>动态树构建：根据 draft token 概率动态调整树的形状，高概率路径更深</span></li>
-            <li><i class="fas fa-arrows-split-up-and-left"></i><span>Tree Attention：一次前向验证整个 draft tree，最大化 GPU 利用率</span></li>
-            <li><i class="fas fa-gauge-high"></i><span>接受率相比 Eagle-v1 提升 20-40%，端到端加速比更高</span></li>
-            <li><i class="fas fa-sliders"></i><span>可配置树大小，在延迟与吞吐间灵活权衡</span></li>
+            <li><i class="fas fa-tree"></i><span><strong>动态树构建</strong>：根据 Draft token 概率动态调整树的形状，高概率路径更深更宽，低概率路径提前终止，最大化有效 Draft 数量</span></li>
+            <li><i class="fas fa-arrows-split-up-and-left"></i><span><strong>Tree Attention 验证</strong>：将整个 Draft Tree 组织为一个批次，通过一次前向传播验证所有分支，充分利用 GPU 并行能力</span></li>
+            <li><i class="fas fa-gauge-high"></i><span><strong>接受率提升 20-40%</strong>：相比 Eagle-v1 的固定树结构，动态树在各类任务上平均接受率提升 20-40%</span></li>
+            <li><i class="fas fa-sliders"></i><span><strong>可配置树大小</strong>：支持设置最大树节点数，在延迟与吞吐之间灵活权衡，适应不同部署场景</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>端到端加速</strong>：在 Vicuna-7B/13B/70B 上实现 3.0-4.0x 加速，在长文本生成场景下加速比更高</span></li>
           </ul>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>EAGLE-2 官方实现</a></li>
+            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees (Li et al., 2024)</a></li>
+            <li><a href="#"><i class="fas fa-github"></i>SafeAILab/EAGLE — EAGLE-2 官方实现</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

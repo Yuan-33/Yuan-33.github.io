@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KV Cache — AI-Infra 技术研究</title>
+  <title>MTP — AI-Infra 技术研究</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -118,31 +118,29 @@
         <div class="breadcrumb">
           <a href="/">首页</a><span>›</span>
           <a href="#">大模型推理</a><span>›</span>
-          <span style="color:var(--text-primary)">KV Cache</span>
+          <a href="#">投机解码</a><span>›</span>
+          <span style="color:var(--text-primary)">MTP</span>
         </div>
         <div class="content-card">
-          <h1>KV Cache</h1>
-          <div class="intro">在自回归生成中缓存历史 Key-Value 张量，避免重复计算，是提升推理吞吐的核心技术。KV Cache 的管理和优化直接决定了大模型推理系统的性能上限，涉及 PagedAttention、Prefix Caching、KV Cache 压缩等关键优化方向。</div>
+          <h1>MTP</h1>
+          <div class="subtitle">Multi-Token Prediction — 训推一体加速</div>
+          <div class="intro">Multi-Token Prediction（MTP）是一种训练范式，让模型在每个位置同时预测未来多个 token 而非仅预测下一个。它既能作为训练目标提升模型质量，又能在推理时将 MTP 头复用为 Draft 模型实现投机解码加速，DeepSeek-V3 率先将这一理念工程化落地。</div>
 
-          <h2><i class="fas fa-book"></i> 基本原理</h2>
-          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在 Transformer 自回归生成中，每生成一个新 token 都需要对所有历史 token 计算 Attention。如果不缓存，第 n 步需要重算前 n-1 步的 Key 和 Value，时间复杂度为 O(n²)。KV Cache 将每一步计算出的 Key 和 Value 张量缓存下来，下一步只需计算新 token 的 Q/K/V 并与缓存拼接，将每步复杂度降为 O(n)。</p>
-
-          <h2><i class="fas fa-star"></i> 关键技术</h2>
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-gauge-high"></i><span><strong>基础 KV Cache</strong>：缓存每层 Attention 的 Key/Value 张量，避免重复计算历史 token，将推理复杂度从 O(n²) 降至 O(n)</span></li>
-            <li><i class="fas fa-layer-group"></i><span><strong>PagedAttention</strong>（vLLM）：借鉴虚拟内存分页思想，将 KV Cache 划分为固定大小的物理块（Block），按需分配显存，消除预分配导致的内存碎片，显存利用率提升至接近 100%</span></li>
-            <li><i class="fas fa-copy"></i><span><strong>Prefix Caching</strong>：对共享相同前缀（如系统提示词）的多个请求，复用同一份 KV Cache，避免重复计算。在多轮对话、Agent 调用等场景下效果显著</span></li>
-            <li><i class="fas fa-compress"></i><span><strong>KV Cache 压缩</strong>：GQA（Grouped-Query Attention）和 MQA（Multi-Query Attention）通过共享 Attention Head 减少 KV Cache 大小；H₂O、StreamingLLM 等方法通过注意力分数筛选重要 token 进行保留</span></li>
-            <li><i class="fas fa-database"></i><span><strong>显存管理</strong>：KV Cache 是大模型推理的主要显存瓶颈。7B 模型处理 4K 上下文约需 1GB KV Cache，70B 模型则需 10GB+。高效的显存调度策略是高并发推理的关键</span></li>
-            <li><i class="fas fa-exchange-alt"></i><span><strong>Swap 与 Offloading</strong>：当 GPU 显存不足时，可将部分 KV Cache 交换到 CPU 内存或 NVMe SSD，通过异步预取减少延迟影响</span></li>
+            <li><i class="fas fa-layer-group"></i><span>多位置预测：在每个 token 位置同时预测 t+1, t+2, ..., t+k 的输出，提供更密集的梯度信号</span></li>
+            <li><i class="fas fa-graduation-cap"></i><span>训练质量提升：MTP 作为辅助训练目标，强制模型学习更丰富的内部表征，尤其对大模型效果显著</span></li>
+            <li><i class="fas fa-recycle"></i><span>训推一体：训练阶段的 MTP 模块在推理时直接复用为 Draft Head，无需额外部署 Draft 模型</span></li>
+            <li><i class="fas fa-rocket"></i><span>DeepSeek-V3 落地：DeepSeek-V3 使用 MTP 实现约 1.8x TPS 提升，验证了大规模工程可行性</span></li>
+            <li><i class="fas fa-compress-arrows-alt"></i><span>参数高效：MTP 头共享主模型的 Embedding 层和部分 Transformer 层，额外参数开销小</span></li>
+            <li><i class="fas fa-shuffle"></i><span>自回归 Draft：MTP 头以自回归方式生成 Draft 序列，保持 token 间的依赖关系，接受率更高</span></li>
           </ul>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>Efficient Memory Management for Large Language Model Serving with PagedAttention (Kwon et al., 2023)</a></li>
-            <li><a href="#"><i class="fas fa-file-pdf"></i>FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., 2022)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>vLLM — 高性能 LLM 推理引擎（PagedAttention 实现）</a></li>
-            <li><a href="#"><i class="fas fa-book"></i>GQA: Training Generalized Multi-Query Transformer Models (Ainslie et al., 2023)</a></li>
+            <li><a href="#"><i class="fas fa-file-pdf"></i>Better & Faster Large Language Models via Multi-token Prediction (Gloeckle et al., Meta, 2024)</a></li>
+            <li><a href="#"><i class="fas fa-file-pdf"></i>DeepSeek-V3 Technical Report — MTP 训练与推理加速</a></li>
+            <li><a href="#"><i class="fas fa-github"></i>Meta multi-token-prediction — 官方实现</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

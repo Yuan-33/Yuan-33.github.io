@@ -71,6 +71,18 @@
                   <i class="fas fa-file-alt nav-icon"></i>
                   <span>Eagle-v3</span>
                 </li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html">
+                  <i class="fas fa-file-alt nav-icon"></i>
+                  <span>Medusa</span>
+                </li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html">
+                  <i class="fas fa-file-alt nav-icon"></i>
+                  <span>MTP</span>
+                </li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html">
+                  <i class="fas fa-file-alt nav-icon"></i>
+                  <span>N-gram 投机解码</span>
+                </li>
               </ul>
             </li>
           </ul>
@@ -112,20 +124,24 @@
         <div class="content-card">
           <h1>Eagle-v1</h1>
           <div class="subtitle">Speculative Decoding — Feature-Level Draft</div>
-          <div class="intro">基于特征级别的投机解码方法，使用轻量级 draft head 从主模型隐藏状态预测未来 token，无需独立 draft 模型。</div>
+          <div class="intro">Eagle（Extrapolation Algorithm for Greater Language-model Efficiency）是一种基于特征级别的投机解码方法，由 SafeAI Lab 提出。它使用轻量级 Draft Head 从主模型的隐藏状态（而非 token embedding）预测未来 token，实现了比传统 token-level 方法更高的接受率，端到端加速 2.5-3.5 倍。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统投机解码（如 Medusa）在 token 级别进行 Draft，而 Eagle 发现 token embedding 空间的不确定性远高于特征（hidden state）空间。因此 Eagle 在主模型最后一层的隐藏状态上训练一个轻量级 Draft Head（线性层 + Transformer Block），以自回归方式在特征空间中生成 Draft 序列，显著提升了预测准确性。</p>
 
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-feather"></i><span>轻量级 Draft Head：仅一个线性层 + Transformer Block，参数量极小</span></li>
-            <li><i class="fas fa-link"></i><span>复用主模型隐藏状态，无需额外的 draft 模型，部署简单</span></li>
-            <li><i class="fas fa-chart-line"></i><span>投机接受率高于传统 n-gram / Medusa 方案</span></li>
-            <li><i class="fas fa-shield-halved"></i><span>输出分布与主模型完全一致，保证无损加速</span></li>
+            <li><i class="fas fa-feather"></i><span><strong>轻量级 Draft Head</strong>：仅一个线性投影层 + 一个 Transformer Block，参数量不到主模型的 1%，训练和推理开销极小</span></li>
+            <li><i class="fas fa-link"></i><span><strong>特征空间 Draft</strong>：在隐藏状态空间而非 token 空间进行预测，利用了特征空间不确定性更低的特性，接受率比 token-level 方法高 20-40%</span></li>
+            <li><i class="fas fa-chart-line"></i><span><strong>高接受率</strong>：在 MT-Bench、HumanEval 等基准上，Draft 接受率显著高于 n-gram、Medusa 等方案，尤其在复杂推理任务上优势明显</span></li>
+            <li><i class="fas fa-shield-halved"></i><span><strong>无损加速</strong>：通过拒绝采样保证输出分布与主模型完全一致，加速不牺牲任何质量</span></li>
+            <li><i class="fas fa-cogs"></i><span><strong>部署简单</strong>：无需独立部署 Draft 模型，Draft Head 与主模型共享前向传播流程，单卡即可运行</span></li>
           </ul>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>EAGLE 推理加速实现</a></li>
+            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024)</a></li>
+            <li><a href="#"><i class="fas fa-github"></i>SafeAILab/EAGLE — 官方实现与预训练模型</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
