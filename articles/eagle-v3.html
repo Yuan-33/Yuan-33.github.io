@@ -129,19 +129,52 @@
           <h2><i class="fas fa-book"></i> 核心改进</h2>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v3 在 Eagle-v2 动态树的基础上，引入了两个关键改进：（1）上下文感知 Draft——利用更丰富的上下文信息（包括已验证的 token 和 Draft 树的状态）来提升预测准确性；（2）自适应剪枝——在 Draft 阶段就识别并剪除低概率分支，减少无效的验证计算。此外，Eagle-v3 还引入了迭代优化机制，利用前一轮验证的反馈动态调整 Draft 策略。</p>
 
+          <h3>上下文感知 Draft 机制</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v1/v2 的 Draft Head 只接收主模型最后一层的隐藏状态作为输入，忽略了树结构中已验证 token 的上下文信息。Eagle-v3 的核心创新是引入「上下文感知」机制——Draft Head 不仅接收当前节点的隐藏状态，还接收该节点在树中的位置信息、其祖先节点的验证结果、以及全局的 Draft 树状态。具体实现上，Eagle-v3 在 Draft Head 的 Transformer Block 中增加了一个 Cross-Attention 层，Query 为当前节点的特征，Key/Value 为树中已验证节点的特征。这使得 Draft Head 可以「看到」整棵树的上下文，做出更准确的预测。</p>
+
+          <h3>自适应剪枝算法</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v3 在 Draft 阶段引入了提前剪枝机制，避免将计算浪费在注定会被拒绝的分支上。具体地，在 Draft Head 生成每个候选 token 时，同时输出一个「置信度分数」（通过 Draft 分布的熵或 Top-1 概率来衡量）。对于置信度低于阈值的候选 token，直接不将其加入 Draft Tree，从而节省了后续的验证计算。这个剪枝决策是动态的：在高确定性位置（如代码中的关键字、常见的短语模式），剪枝阈值较低（允许更多分支）；在低确定性位置（如开放式文本的转折点），剪枝阈值较高（只保留最可能的分支）。这种自适应策略使得 Eagle-v3 在相同节点预算下，有效 Draft token 的比例更高。</p>
+
+          <h3>迭代优化与闭环反馈</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle-v3 引入了 Draft-Verify-Adjust 的闭环机制：在每一轮验证结束后，分析哪些分支被接受、哪些被拒绝，以及拒绝的原因（是 Draft Head 预测错误还是主模型的概率分布有偏）。基于这些反馈信息，动态调整下一轮 Draft 的策略——例如增加对某类 token 的探索、降低对另一类 token 的置信度。这种迭代优化使得 Eagle-v3 在多轮对话或长文本生成中，Draft 质量会随着上下文的积累而持续提升。</p>
+
+          <h3>理论最优逼近分析</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">投机解码的理论加速上限由「接受率上限」决定——即使 Draft 完美预测，加速比也不会超过 1/(1-α)，其中 α 为接受率。Eagle-v3 通过上下文感知和自适应剪枝，将实际接受率推近理论上限。在 MT-Bench 上，Eagle-v3 的平均接受率达到 0.88-0.92，而理论上限约为 0.93-0.95（取决于具体模型和任务）。这意味着 Eagle-v3 已经「几乎」达到了投机解码的理论极限，进一步的加速需要从其他方向（如增大 Draft 长度、优化验证效率）入手。</p>
+
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-brain"></i><span><strong>上下文感知 Draft</strong>：Draft Head 接收更丰富的上下文输入，包括主模型的隐藏状态和已验证 token 的信息，预测准确性进一步提升</span></li>
-            <li><i class="fas fa-scissors"></i><span><strong>自适应剪枝</strong>：在 Draft 阶段根据概率阈值提前剪除低置信度分支，减少 Tree Attention 验证时的无效计算</span></li>
-            <li><i class="fas fa-rotate"></i><span><strong>迭代优化</strong>：Draft Tree 在验证反馈后动态调整后续轮次的构建策略，形成 Draft-Verify-Adjust 的闭环</span></li>
+            <li><i class="fas fa-brain"></i><span><strong>上下文感知 Draft</strong>：Draft Head 通过 Cross-Attention 接收树中已验证节点的上下文信息，预测准确性进一步提升，接受率比 Eagle-v2 高 10-15%</span></li>
+            <li><i class="fas fa-scissors"></i><span><strong>自适应剪枝</strong>：在 Draft 阶段根据置信度分数提前剪除低概率分支，减少 Tree Attention 验证时的无效计算，有效 Draft 比例提升 20-30%</span></li>
+            <li><i class="fas fa-rotate"></i><span><strong>迭代优化</strong>：Draft Tree 在验证反馈后动态调整后续轮次的构建策略，形成 Draft-Verify-Adjust 的闭环，长文本场景下 Draft 质量持续提升</span></li>
             <li><i class="fas fa-rocket"></i><span><strong>超越 Eagle-v2</strong>：在相同计算预算下，Eagle-v3 的有效 Draft token 数量比 Eagle-v2 多 15-25%</span></li>
-            <li><i class="fas fa-bullseye"></i><span><strong>接近理论最优</strong>：在多个基准上逼近 Speculative Decoding 的理论加速上限</span></li>
+            <li><i class="fas fa-bullseye"></i><span><strong>接近理论最优</strong>：在多个基准上逼近 Speculative Decoding 的理论加速上限（MT-Bench 接受率 0.88-0.92，理论上限 0.93-0.95）</span></li>
+            <li><i class="fas fa-chart-bar"></i><span><strong>端到端加速</strong>：在 LLaMA-2-13B 上实现 3.5-4.5x 加速，在代码生成任务上可达 4.5-5.0x</span></li>
           </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Eagle-v3 相比 v2 的核心提升是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：核心提升有两点：（1）上下文感知——Draft Head 通过 Cross-Attention 接收树中已验证节点的信息，不再是孤立地预测每个位置，而是利用全局上下文提升预测准确率；（2）自适应剪枝——在 Draft 阶段就识别低置信度分支并剪除，避免无效的验证计算。两者结合使得 Eagle-v3 在相同计算预算下，有效 Draft token 数量比 v2 多 15-25%。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：Cross-Attention 的引入会不会大幅增加 Draft Head 的计算开销？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：会略有增加，但幅度可控。Cross-Attention 的 Key/Value 来自树中已验证节点（通常 10-30 个），维度与 Draft Head 的工作维度相同。相比 Draft Head 原有的 Self-Attention 和 FFN，Cross-Attention 的额外开销约为 10-20%。但由于自适应剪枝减少了需要 Draft 的节点数，总计算量反而可能低于 Eagle-v2。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：什么是投机解码的理论加速上限？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：投机解码的理论加速上限取决于接受率 α 和 Draft 长度 γ。在理想情况下（所有 Draft token 都被接受），加速比为 γ+1（因为一次验证可以生成 γ+1 个 token：γ 个 Draft + 1 个验证时额外生成的 token）。但实际中，由于 Draft 不可能完美，加速比的理论上限为 1/(1-α) * (验证开销系数)。例如 α=0.9 时，理论加速上限约为 10x（考虑验证开销后约为 4-5x）。Eagle-v3 在 MT-Bench 上 α≈0.9，已经非常接近这个上限。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：Eagle 系列的演进路线是什么？每个版本解决了什么问题？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Eagle-v1 提出了「特征空间 Draft」的核心思想，解决了 token 空间预测不确定性高的问题；Eagle-v2 引入了「动态 Draft Tree」，解决了固定树结构计算浪费的问题；Eagle-v3 引入了「上下文感知」和「自适应剪枝」，解决了 Draft Head 缺乏全局上下文和低置信度分支浪费计算的问题。三个版本的 Draft Head 架构基本一致（v3 增加了 Cross-Attention），演进主要在推理策略层面。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：Eagle-v3 和 Medusa-2 相比，各自的优势是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：Medusa-2 通过联合训练主模型和多个 Draft Head 来提升接受率，但需要修改主模型参数，训练成本较高。Eagle-v3 保持了 Draft Head 与主模型的分离（不修改主模型），通过更智能的树构建策略来提升性能。Eagle-v3 的优势在于：（1）无需修改主模型，部署更灵活；（2）Draft Head 更轻量（仅 1 层 vs Medusa 的多个 Head）；（3）动态树 + 上下文感知的组合使得接受率更高。Medusa-2 的优势在于：（1）多个独立 Head 可以并行预测，Draft 速度更快；（2）联合训练可以更好地适配特定任务。</p>
+          </div>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE-3: Context-Aware Speculative Decoding (Li et al., 2025)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>SafeAILab/EAGLE — EAGLE-3 官方实现</a></li>
+            <li><a href="https://arxiv.org/abs/2501.15077" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-3: Context-Aware Speculative Decoding (Li et al., 2025)</a></li>
+            <li><a href="https://github.com/SafeAILab/EAGLE" target="_blank" rel="noopener"><i class="fas fa-github"></i>SafeAILab/EAGLE — EAGLE-3 官方实现</a></li>
+            <li><a href="https://arxiv.org/abs/2406.16858" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-2: Faster Inference of Language Models with Dynamic Draft Trees (Li et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2401.15077" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE-1: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024)</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

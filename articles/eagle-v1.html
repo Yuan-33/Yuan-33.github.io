@@ -129,19 +129,52 @@
           <h2><i class="fas fa-book"></i> 核心原理</h2>
           <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统投机解码（如 Medusa）在 token 级别进行 Draft，而 Eagle 发现 token embedding 空间的不确定性远高于特征（hidden state）空间。因此 Eagle 在主模型最后一层的隐藏状态上训练一个轻量级 Draft Head（线性层 + Transformer Block），以自回归方式在特征空间中生成 Draft 序列，显著提升了预测准确性。</p>
 
+          <h3>为什么选择特征空间而非 Token 空间？</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle 的核心洞察来自对 LLM 内部表征的分析。研究发现，token embedding 空间是离散的、高维稀疏的，相邻 token 之间的语义跳跃很大，导致预测下一个 token 的不确定性很高。而隐藏状态（hidden state）是连续的、低维稠密的，包含了丰富的上下文语义信息，相邻位置的特征变化更加平滑。具体来说，在 token 空间中，同一个位置可能的下一个 token 有数万个候选，但在特征空间中，下一个位置的隐藏状态可以通过当前特征进行更准确的回归预测。这一发现使得 Eagle 的 Draft Head 可以利用更可预测的特征空间来间接预测 token，大幅提升了 Draft 的准确率。</p>
+
+          <h3>算法流程详解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Eagle 的完整推理流程分为 Draft 阶段和验证阶段：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>Draft 阶段：</strong>（1）主模型正常运行一次前向传播，得到最后一个 token 位置的隐藏状态 h_t；（2）Draft Head 接收 h_t，通过线性投影层映射到主模型的特征维度，再经过一个 Transformer Block 进行自回归建模；（3）Draft Head 的输出特征经过主模型的 LM Head（共享的）映射为 token 概率分布，采样得到 Draft token x_{t+1}；（4）将 x_{t+1} 的 embedding 与 Draft Head 的输出特征拼接，继续预测 x_{t+2}，重复此过程生成 γ 个 Draft token。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>验证阶段：</strong>将 Draft 序列与原始输入拼接，主模型进行一次前向传播，同时验证所有 γ 个 Draft token。对于每个位置，比较主模型的输出分布与 Draft token：若主模型在该位置的概率 p_M(x) ≥ Draft 的概率 q(x)（或通过概率差的拒绝采样），则接受该 token；否则拒绝并从修正分布中重新采样。这一机制保证了最终输出分布与标准自回归解码完全一致。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>关键数学保证：</strong>Eagle 使用的拒绝采样公式为：以概率 min(1, p_M(x)/q(x)) 接受 Draft token x，若拒绝则从分布 max(0, p_M(x)-q(x)) 归一化后重新采样。这从数学上保证了投机解码的输出分布与原始模型完全相同，实现了真正的无损加速。</p>
+
+          <h3>Draft Head 架构细节</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Draft Head 的设计极其轻量：一个线性投影层将主模型的隐藏状态维度 d_model 投影到 Draft Head 的工作维度 d_draft（通常 d_draft = d_model），然后接一个标准的 Transformer Block（包含 Multi-Head Self-Attention 和 FFN）。这个 Transformer Block 的参数量约为主模型单层的 1/32（以 LLaMA-7B 为例，主模型有 32 层，Draft Head 仅 1 层）。Draft Head 的训练使用标准的交叉熵损失，训练数据来自主模型在通用语料上的生成结果。训练通常只需数小时（单张 A100），且训练完成后无需修改主模型的任何参数。</p>
+
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-feather"></i><span><strong>轻量级 Draft Head</strong>：仅一个线性投影层 + 一个 Transformer Block，参数量不到主模型的 1%，训练和推理开销极小</span></li>
-            <li><i class="fas fa-link"></i><span><strong>特征空间 Draft</strong>：在隐藏状态空间而非 token 空间进行预测，利用了特征空间不确定性更低的特性，接受率比 token-level 方法高 20-40%</span></li>
-            <li><i class="fas fa-chart-line"></i><span><strong>高接受率</strong>：在 MT-Bench、HumanEval 等基准上，Draft 接受率显著高于 n-gram、Medusa 等方案，尤其在复杂推理任务上优势明显</span></li>
-            <li><i class="fas fa-shield-halved"></i><span><strong>无损加速</strong>：通过拒绝采样保证输出分布与主模型完全一致，加速不牺牲任何质量</span></li>
-            <li><i class="fas fa-cogs"></i><span><strong>部署简单</strong>：无需独立部署 Draft 模型，Draft Head 与主模型共享前向传播流程，单卡即可运行</span></li>
+            <li><i class="fas fa-feather"></i><span><strong>轻量级 Draft Head</strong>：仅一个线性投影层 + 一个 Transformer Block，参数量不到主模型的 1%（约 0.5%-1%），训练仅需数小时，推理开销极小</span></li>
+            <li><i class="fas fa-link"></i><span><strong>特征空间 Draft</strong>：在隐藏状态空间而非 token 空间进行预测，利用了特征空间不确定性更低的特性，接受率比 token-level 方法（如 Medusa）高 20-40%</span></li>
+            <li><i class="fas fa-chart-line"></i><span><strong>高接受率</strong>：在 MT-Bench、HumanEval 等基准上，Draft 接受率显著高于 n-gram、Medusa 等方案，尤其在复杂推理任务上优势明显。例如在 MT-Bench 上 Eagle 的平均接受率约为 0.75-0.85，而 Medusa 约为 0.55-0.65</span></li>
+            <li><i class="fas fa-shield-halved"></i><span><strong>无损加速</strong>：通过拒绝采样（Rejection Sampling）保证输出分布与主模型完全一致，加速不牺牲任何质量</span></li>
+            <li><i class="fas fa-cogs"></i><span><strong>部署简单</strong>：无需独立部署 Draft 模型，Draft Head 与主模型共享前向传播流程，单卡即可运行，支持主流框架（vLLM、TGI 等）</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>端到端加速</strong>：在 LLaMA-2-13B 上实现 2.5-3.5x 端到端加速，在代码生成任务上加速比更高（Draft 接受率更高）</span></li>
           </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Eagle 和 Medusa 的核心区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：核心区别在于 Draft 的空间不同。Medusa 在 token 空间进行 Draft——直接预测下一个 token 的 ID，而 Eagle 在特征（hidden state）空间进行 Draft——先预测下一个位置的隐藏状态，再通过 LM Head 映射为 token。由于 token embedding 空间的离散性和高维稀疏性，token 空间的预测不确定性远高于连续的特征空间，因此 Eagle 的 Draft 准确率显著高于 Medusa。此外，Eagle 的 Draft Head 是自回归的（当前预测依赖前一个预测），而 Medusa 的多个 Head 是并行独立预测不同位置的。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：Eagle 如何保证加速是无损的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：通过拒绝采样（Rejection Sampling）机制。对于每个 Draft token x，计算主模型的概率 p_M(x) 和 Draft 分布的概率 q(x)。以概率 min(1, p_M(x)/q(x)) 接受该 token；若拒绝，则从修正分布 max(0, p_M(x)-q(x)) 归一化后重新采样。这个数学证明保证了最终输出的 token 序列服从与原始自回归解码完全相同的分布，因此是严格无损的。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Draft Head 的训练数据从哪里来？训练成本如何？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：训练数据来自主模型在通用指令数据集（如 Alpaca、ShareGPT 等）上的生成结果。具体做法是：用主模型对训练数据进行前向传播，收集每个位置的隐藏状态作为输入，下一个位置的隐藏状态作为标签，用 MSE Loss 或 Cross-Entropy Loss 训练 Draft Head。训练成本极低——以 LLaMA-2-13B 为例，单张 A100 训练约 2-4 小时即可收敛，且训练完成后主模型参数完全不变。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：Eagle 的加速比受哪些因素影响？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：主要受以下因素影响：（1）Draft 接受率——接受率越高，每个验证轮次中被接受的 token 越多，加速比越大。接受率与任务类型相关，代码生成 > 数学推理 > 开放式对话。（2）Draft 长度 γ——γ 越大，单次 Draft 的 token 越多，但被拒绝的概率也增加，需要找到最优 γ（通常 3-6）。（3）主模型大小——模型越大，单次前向传播的延迟越高，投机解码的相对加速比越明显。（4）Batch Size——投机解码在 batch=1 时效果最好，大 batch 下优势会减弱。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：为什么 Eagle 在代码生成任务上加速比特别高？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：代码具有高度的局部模式重复性（如缩进、括号匹配、关键字序列、常见的 API 调用模式），这使得 Draft Head 的预测准确率在代码场景下特别高。同时，代码的语法约束降低了下一个 token 的不确定性，特征空间中的可预测性更强。实验表明，Eagle 在 HumanEval 上的加速比可以达到 3.5-4.0x，而在开放式对话中约为 2.5-3.0x。</p>
+          </div>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>SafeAILab/EAGLE — 官方实现与预训练模型</a></li>
+            <li><a href="https://arxiv.org/abs/2401.15077" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty (Li et al., 2024)</a></li>
+            <li><a href="https://github.com/SafeAILab/EAGLE" target="_blank" rel="noopener"><i class="fas fa-github"></i>SafeAILab/EAGLE — 官方实现与预训练模型</a></li>
+            <li><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Fast Inference from Transformers via Speculative Decoding (Leviathan et al., 2023) — 投机解码原始论文</a></li>
+            <li><a href="https://arxiv.org/abs/2302.01318" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Accelerating Large Language Model Decoding with Speculative Sampling (Chen et al., 2023) — DeepMind 投机解码</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

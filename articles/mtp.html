@@ -126,21 +126,61 @@
           <div class="subtitle">Multi-Token Prediction — 训推一体加速</div>
           <div class="intro">Multi-Token Prediction（MTP）是一种训练范式，让模型在每个位置同时预测未来多个 token 而非仅预测下一个。它既能作为训练目标提升模型质量，又能在推理时将 MTP 头复用为 Draft 模型实现投机解码加速，DeepSeek-V3 率先将这一理念工程化落地。</div>
 
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Multi-Token Prediction（MTP）的核心思想是让语言模型在每个位置同时预测未来多个 token，而非传统的仅预测下一个 token（NTP）。这一范式既可以在训练阶段作为辅助目标提升模型质量，也可以在推理阶段复用 MTP 头作为 Draft 模型实现投机解码加速。</p>
+
+          <h3>MTP 的训练目标</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统的 NTP 训练目标是在每个位置 t 只预测 t+1 的 token，损失函数为 L_NTP = -Σ log P(x_{t+1} | x_{≤t})。MTP 扩展了这一目标：在每个位置 t 同时预测 t+1, t+2, ..., t+K 的 token，损失函数为 L_MTP = -Σ_{k=1}^{K} Σ_t log P(x_{t+k} | x_{≤t})。这提供了更密集的梯度信号——每个 token 位置可以为未来 K 个位置提供监督，而不仅仅是 1 个。论文（Gloeckle et al., Meta, 2024）证明，MTP 作为辅助训练目标可以显著提升模型质量，尤其在代码生成和数学推理任务上效果明显。这是因为这些任务需要模型「提前规划」未来多个 token，MTP 的多位置预测恰好鼓励了这种能力。</p>
+
+          <h3>MTP 头的架构设计</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">MTP 头的架构有多种设计方案：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>独立 Head 方案（Meta 论文）：</strong>为每个预测位置 k 使用一个独立的线性层，输入为共享的 Transformer 隐藏状态，输出为位置 t+k 的 token 概率分布。优点是简单高效，缺点是各 Head 之间没有依赖关系（类似 Medusa）。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>自回归 MTP 方案（DeepSeek-V3）：</strong>MTP 模块是一个轻量级的 Transformer 层，以自回归方式生成 Draft 序列。具体地，MTP 模块接收主模型的隐藏状态 h_t，先预测 t+1 的 token embedding，然后将该 embedding 与 h_t 拼接，经过一个 Transformer 层后预测 t+2，以此类推。这种设计保持了 token 间的依赖关系，Draft 的接受率更高。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>共享 Embedding 方案：</strong>MTP 头共享主模型的 Embedding 层和部分 Transformer 层，只在最后几层使用独立参数。这进一步减少了额外参数开销（约 3-5%），同时保持了较好的预测质量。</p>
+
+          <h3>DeepSeek-V3 的 MTP 工程实现</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">DeepSeek-V3 是首个在大规模生产环境中落地 MTP 的模型。其 MTP 实现的关键细节：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>训练阶段：</strong>MTP 作为辅助损失加入主训练目标，权重为 λ=0.3。MTP 模块在训练过程中学习预测 t+1 到 t+K（K=4）的 token。训练完成后，MTP 模块的参数可以丢弃（不影响主模型质量），也可以保留用于推理加速。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>推理阶段：</strong>保留 MTP 模块作为 Draft Head，以自回归方式生成 Draft 序列。Draft token 经过主模型验证，使用标准的拒绝采样保证无损。DeepSeek-V3 报告了约 1.8x TPS（Tokens Per Second）提升。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>工程优化：</strong>DeepSeek-V3 的 MTP 模块与主模型共享 KV Cache，避免了重复计算。Draft 阶段的 MTP 模块运行在主模型的同一 GPU 上，利用了 MTP 模块参数量小（约主模型的 3%）的优势，Draft 延迟极低。</p>
+
+          <h3>MTP 与其他投机解码方法的对比</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">MTP 的独特优势在于「训推一体」——训练阶段的 MTP 模块在推理时直接复用为 Draft Head，无需额外的 Draft 模型或训练。与 Medusa 相比，MTP 的自回归设计（DeepSeek-V3 方案）保持了 token 间的依赖关系，接受率更高。与 Eagle 相比，MTP 可以在训练阶段就优化主模型的隐藏状态表征（通过辅助损失），而 Eagle 的 Draft Head 是在主模型训练完成后才添加的。MTP 的劣势在于需要在预训练阶段就引入，对已有的模型不能直接「后添加」（除非进行额外的微调）。</p>
+
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-layer-group"></i><span>多位置预测：在每个 token 位置同时预测 t+1, t+2, ..., t+k 的输出，提供更密集的梯度信号</span></li>
-            <li><i class="fas fa-graduation-cap"></i><span>训练质量提升：MTP 作为辅助训练目标，强制模型学习更丰富的内部表征，尤其对大模型效果显著</span></li>
-            <li><i class="fas fa-recycle"></i><span>训推一体：训练阶段的 MTP 模块在推理时直接复用为 Draft Head，无需额外部署 Draft 模型</span></li>
-            <li><i class="fas fa-rocket"></i><span>DeepSeek-V3 落地：DeepSeek-V3 使用 MTP 实现约 1.8x TPS 提升，验证了大规模工程可行性</span></li>
-            <li><i class="fas fa-compress-arrows-alt"></i><span>参数高效：MTP 头共享主模型的 Embedding 层和部分 Transformer 层，额外参数开销小</span></li>
-            <li><i class="fas fa-shuffle"></i><span>自回归 Draft：MTP 头以自回归方式生成 Draft 序列，保持 token 间的依赖关系，接受率更高</span></li>
+            <li><i class="fas fa-layer-group"></i><span><strong>多位置预测</strong>：在每个 token 位置同时预测 t+1, t+2, ..., t+k 的输出，提供更密集的梯度信号，训练质量提升显著</span></li>
+            <li><i class="fas fa-graduation-cap"></i><span><strong>训练质量提升</strong>：MTP 作为辅助训练目标，强制模型学习更丰富的内部表征，在代码生成和数学推理任务上效果尤其明显</span></li>
+            <li><i class="fas fa-recycle"></i><span><strong>训推一体</strong>：训练阶段的 MTP 模块在推理时直接复用为 Draft Head，无需额外部署 Draft 模型，真正的「一次训练，两处使用」</span></li>
+            <li><i class="fas fa-rocket"></i><span><strong>DeepSeek-V3 落地</strong>：DeepSeek-V3 使用 MTP 实现约 1.8x TPS 提升，验证了大规模工程可行性</span></li>
+            <li><i class="fas fa-compress-arrows-alt"></i><span><strong>参数高效</strong>：MTP 头共享主模型的 Embedding 层和部分 Transformer 层，额外参数开销约 3-5%</span></li>
+            <li><i class="fas fa-shuffle"></i><span><strong>自回归 Draft</strong>：MTP 头以自回归方式生成 Draft 序列，保持 token 间的依赖关系，接受率比独立 Head 方案高 10-15%</span></li>
           </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：MTP 和 Medusa 的核心区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：核心区别有两点：（1）训练目标不同——MTP 是在训练阶段就引入多位置预测作为辅助损失，同时提升模型质量和 Draft 能力；Medusa 是在模型训练完成后添加预测头，不影响主模型训练。（2）预测方式不同——Medusa 的多个 Head 独立并行预测不同位置（Head-2 不知道 Head-1 的结果），而 MTP（DeepSeek-V3 方案）以自回归方式生成 Draft 序列，保持了 token 间的依赖关系。因此 MTP 的 Draft 接受率通常更高。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：MTP 作为训练目标，为什么能提升模型质量？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：传统 NTP 在每个位置只预测下一个 token，梯度信号是稀疏的。MTP 在每个位置同时预测未来 K 个 token，提供了 K 倍的梯度信号。这迫使模型在每个位置学习更丰富的内部表征——不仅要「理解当前上下文」，还要「规划未来多个 token」。实验表明，MTP 在代码生成和数学推理任务上提升尤其明显（约 2-5% 的 benchmark 提升），因为这些任务需要多步推理和规划能力。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：DeepSeek-V3 的 MTP 模块在推理时如何工作？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：推理时，MTP 模块作为 Draft Head 工作：（1）主模型正常运行一次前向传播，得到隐藏状态 h_t；（2）MTP 模块接收 h_t，以自回归方式生成 K 个 Draft token：先预测 t+1，将 t+1 的 embedding 与 h_t 拼接后预测 t+2，以此类推；（3）主模型对 Draft 序列进行一次前向传播验证；（4）使用拒绝采样保证无损。MTP 模块与主模型共享 KV Cache 和 Embedding 层，Draft 延迟极低。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：MTP 的「训推一体」优势具体体现在哪里？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：「训推一体」意味着不需要为投机解码单独准备 Draft 模型或额外训练。传统的独立 Draft 模型方案需要：（1）选择或训练一个小模型；（2）对齐 Draft 模型和主模型的词表；（3）管理两个模型的部署。MTP 直接在预训练阶段就训练好了 Draft Head，推理时只需保留 MTP 模块即可。这大大简化了工程流程，降低了部署复杂度。DeepSeek-V3 的实践证明，MTP 模块的额外参数量仅约 3%，但带来了 1.8x 的推理加速。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：MTP 可以对已有的模型后添加吗？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：可以，但效果不如在预训练阶段引入。对于已有的模型，可以通过额外的微调来添加 MTP 模块：冻结主模型参数，只训练 MTP Head（类似 Medusa-1 的方式）。但这会损失 MTP 的「训练质量提升」优势——因为主模型的隐藏状态没有被 MTP 损失优化过。更好的做法是在预训练阶段就引入 MTP，如 DeepSeek-V3 所做的那样。对于已经训练好的模型，Eagle（在推理时添加 Draft Head）可能是更实用的选择。</p>
+          </div>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>Better & Faster Large Language Models via Multi-token Prediction (Gloeckle et al., Meta, 2024)</a></li>
-            <li><a href="#"><i class="fas fa-file-pdf"></i>DeepSeek-V3 Technical Report — MTP 训练与推理加速</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>Meta multi-token-prediction — 官方实现</a></li>
+            <li><a href="https://arxiv.org/abs/2404.19737" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Better & Faster Large Language Models via Multi-token Prediction (Gloeckle et al., Meta, 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2412.19437" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>DeepSeek-V3 Technical Report — MTP 训练与推理加速</a></li>
+            <li><a href="https://github.com/facebookresearch/meta-multi-token-prediction" target="_blank" rel="noopener"><i class="fas fa-github"></i>Meta multi-token-prediction — 官方实现</a></li>
+            <li><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Fast Inference from Transformers via Speculative Decoding (Leviathan et al., 2023) — 投机解码原始论文</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

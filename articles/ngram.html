@@ -126,21 +126,59 @@
           <div class="subtitle">Speculative Decoding — Retrieval & Lookahead</div>
           <div class="intro">N-gram 投机解码是一类零额外参数的加速方法，通过从历史生成的 token 序列中检索匹配的 N-gram 片段作为 Draft 候选，或维护全局 N-gram 池进行前瞻匹配，无需任何额外模型或训练即可加速自回归生成。</div>
 
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">N-gram 投机解码的核心思想是利用语言中的局部模式重复性——在自然语言和代码中，很多短语、句式和代码模式会反复出现。通过从历史生成的 token 序列中检索匹配的 N-gram 片段作为 Draft 候选，可以在不引入任何额外模型或参数的情况下加速自回归生成。</p>
+
+          <h3>REST：检索式投机解码</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">REST（Retrieval-Based Speculative Decoding）的核心流程：（1）维护一个 N-gram 数据库，存储来自外部语料库或已生成文本的所有连续 N-gram 序列；（2）在每个生成步骤，将当前上下文的最后 m 个 token 作为查询，在数据库中检索匹配的 N-gram 序列；（3）将检索到的序列作为 Draft 候选，送入主模型验证。REST 的关键优势是零训练开销——不需要训练任何 Draft 模型，只需要一个高效的 N-gram 检索系统。实践中通常使用 Trie 树或哈希表来实现快速检索。REST 的 Draft 质量取决于检索语料库与当前生成任务的相关性——如果语料库包含大量与当前任务相似的文本，Draft 的接受率会很高。</p>
+
+          <h3>Lookahead Decoding</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Lookahead Decoding 是另一种 N-gram 投机解码方法，其核心思想是维护一个全局的 N-gram 池，缓存所有在生成过程中已见过的连续 token 序列。具体流程：（1）初始化一个空的 N-gram 池；（2）在每个生成步骤，主模型正常生成一个 token，同时将新生成的 token 序列加入 N-gram 池；（3）在下一次生成前，从 N-gram 池中检索与当前上下文匹配的序列作为 Draft 候选；（4）主模型验证 Draft，接受匹配的 token。Lookahead Decoding 的优势是 N-gram 池会随着生成过程「越来越聪明」——在重复性高的文本中（如代码、模板），后期的 Draft 质量会显著提升。</p>
+
+          <h3>N-gram 匹配算法详解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">N-gram 匹配的核心挑战是如何高效地从大量候选序列中找到与当前上下文最匹配的 Draft。常用的方法有：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>Trie 树匹配：</strong>将所有 N-gram 序列组织为 Trie 树，查询时从当前上下文的最后 m 个 token 开始，在 Trie 树中向下遍历，找到所有匹配的子树。时间复杂度为 O(m + 候选数)，适合大规模语料库。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>哈希表匹配：</strong>将每个 N-gram 的前缀作为 key，后续 token 序列作为 value，存储在哈希表中。查询时直接用当前上下文的前缀作为 key 进行查找。优点是实现简单、查询速度快（O(1)），缺点是内存占用较大。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>滑动窗口匹配：</strong>维护一个固定大小的滑动窗口（最近生成的 L 个 token），在窗口内进行 N-gram 匹配。这种方法不需要外部语料库，完全利用已生成的文本，适合上下文重复性高的场景。</p>
+
+          <h3>接受率分析</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">N-gram 投机解码的接受率高度依赖于文本的重复性。在代码生成任务中，由于缩进、括号匹配、关键字序列等模式的高度重复性，N-gram 方法的接受率可以达到 0.6-0.8（接近 Medusa 的水平）。但在开放式对话和创意写作中，由于文本的新颖性较高，N-gram 的接受率通常只有 0.3-0.5，显著低于基于模型的 Eagle/Medusa。因此，N-gram 方法最适合以下场景：（1）代码生成和补全；（2）模板化文本生成；（3）多轮对话中引用历史内容的场景。</p>
+
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-search"></i><span>REST（检索式投机解码）：从外部语料库或已生成文本中检索 N-gram 序列作为 Draft，零训练开销</span></li>
-            <li><i class="fas fa-eye"></i><span>Lookahead Decoding：维护全局 N-gram 池，缓存所有已见过的连续 token 序列，动态匹配当前上下文</span></li>
-            <li><i class="fas fa-feather"></i><span>零额外参数：不引入任何新模型或可训练参数，完全利用已有 token 序列信息</span></li>
-            <li><i class="fas fa-sync"></i><span>在线更新：N-gram 池随生成过程实时更新，越到后面 Draft 质量越高</span></li>
-            <li><i class="fas fa-puzzle-piece"></i><span>与模型无关：可应用于任意自回归语言模型，不依赖特定架构</span></li>
-            <li><i class="fas fa-balance-scale"></i><span>质量无损：Draft token 经过主模型验证，输出分布与标准解码完全一致</span></li>
+            <li><i class="fas fa-search"></i><span><strong>REST（检索式投机解码）</strong>：从外部语料库或已生成文本中检索 N-gram 序列作为 Draft，零训练开销，适合有高质量参考语料的场景</span></li>
+            <li><i class="fas fa-eye"></i><span><strong>Lookahead Decoding</strong>：维护全局 N-gram 池，缓存所有已见过的连续 token 序列，动态匹配当前上下文，越到后面 Draft 质量越高</span></li>
+            <li><i class="fas fa-feather"></i><span><strong>零额外参数</strong>：不引入任何新模型或可训练参数，完全利用已有 token 序列信息，内存开销几乎为零</span></li>
+            <li><i class="fas fa-sync"></i><span><strong>在线更新</strong>：N-gram 池随生成过程实时更新，无需预处理，在重复性高的文本中后期 Draft 质量显著提升</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>与模型无关</strong>：可应用于任意自回归语言模型（GPT、LLaMA、Mistral 等），不依赖特定架构</span></li>
+            <li><i class="fas fa-balance-scale"></i><span><strong>质量无损</strong>：Draft token 经过主模型验证，输出分布与标准解码完全一致，通过拒绝采样保证无损</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>代码场景加速显著</strong>：在代码生成任务上实现 1.5-2.5x 加速，接受率可达 0.6-0.8</span></li>
           </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：N-gram 投机解码和基于模型的方法（Eagle/Medusa）相比，优劣势是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：优势：（1）零额外参数和训练开销——不需要训练 Draft 模型或添加 Head；（2）部署简单——无需修改模型或管理额外组件；（3）内存开销几乎为零——只需存储 N-gram 池。劣势：（1）接受率受限于文本重复性——在开放式对话中接受率较低；（2）Draft 质量不稳定——依赖于历史文本的质量和相关性；（3）不适合长距离依赖——N-gram 只能捕获局部模式，无法预测需要长距离推理的 token。总体来说，N-gram 方法适合作为「低成本的基线方案」或在代码场景中使用。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：REST 的 N-gram 数据库如何构建？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：REST 的 N-gram 数据库可以从两个来源构建：（1）外部语料库——将与当前任务相关的文本（如代码库、文档）进行 tokenize，提取所有连续的 N-gram 序列存入数据库；（2）已生成文本——在生成过程中，将模型已经生成的 token 序列实时加入数据库。实践中通常结合两者：先用外部语料库初始化数据库，再用已生成文本持续更新。数据库通常使用 Trie 树或哈希表实现，支持 O(1) 或 O(m) 的快速检索。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Lookahead Decoding 的 N-gram 池大小如何控制？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：N-gram 池的大小需要在「Draft 质量」和「内存开销」之间权衡。池越大，可检索的候选越多，Draft 质量越高；但内存开销也越大，检索速度也会变慢。实践中通常设置一个最大容量（如 10K-100K 个 N-gram），当池满时使用 LRU（Least Recently Used）策略淘汰最旧的条目。此外，可以设置 N-gram 的最大长度（如 N=5-10），过长的 N-gram 匹配概率很低，不值得存储。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：N-gram 方法在代码场景下为什么特别有效？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：代码具有高度的局部模式重复性：（1）缩进和括号匹配——同一函数内的缩进模式会重复；（2）关键字序列——如 for/while/if 的常见模式；（3）API 调用——同一个库的 API 调用方式会反复出现；（4）变量名和函数名——在同一个代码库中，标识符会多次出现。这些模式使得 N-gram 匹配的成功率很高。实验表明，在代码生成任务中，N-gram 方法的接受率可以达到 0.6-0.8，接近基于模型的方法。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：REST 和 Lookahead Decoding 的区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：主要区别在于 N-gram 的来源和更新方式：（1）REST 依赖外部语料库——需要预先准备与任务相关的参考文本，N-gram 数据库在生成前就构建好，生成过程中一般不更新（除非额外加入已生成文本）；（2）Lookahead Decoding 不需要外部语料库——N-gram 池完全来自已生成的文本，随生成过程实时更新。REST 的优势是在有高质量参考语料时 Draft 质量更高；Lookahead 的优势是无需准备语料库，部署更简单，且在重复性高的长文本中越到后面效果越好。</p>
+          </div>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>REST: Retrieval-Based Speculative Decoding (He et al., 2024)</a></li>
-            <li><a href="#"><i class="fas fa-file-pdf"></i>Lookahead Decoding: Breaking the Sequential Dependency (Fu et al., 2024)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>hao-ai-lab/LookaheadDecoding — Lookahead Decoding 实现</a></li>
+            <li><a href="https://arxiv.org/abs/2403.06897" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>REST: Retrieval-Based Speculative Decoding (He et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2402.02057" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Lookahead Decoding: Breaking the Sequential Dependency (Fu et al., 2024)</a></li>
+            <li><a href="https://github.com/hao-ai-lab/LookaheadDecoding" target="_blank" rel="noopener"><i class="fas fa-github"></i>hao-ai-lab/LookaheadDecoding — Lookahead Decoding 实现</a></li>
+            <li><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Fast Inference from Transformers via Speculative Decoding (Leviathan et al., 2023) — 投机解码原始论文</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>

@@ -126,21 +126,56 @@
           <div class="subtitle">Speculative Decoding — Multiple Decoding Heads</div>
           <div class="intro">Medusa 是一种无需独立 Draft 模型的投机解码方法，通过在冻结的 LLM 最后一层隐藏状态上添加多个轻量级预测头（Medusa Heads），并行预测未来多个位置的 token，配合 Tree Attention 验证机制实现 2-3 倍推理加速。</div>
 
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Medusa 的核心思想是在冻结的 LLM 最后一层隐藏状态上，添加多个并行的轻量级预测头（Medusa Head），每个头负责预测未来不同位置的 token。与传统的独立 Draft 模型不同，Medusa 不需要额外的模型，所有预测头共享主模型的前向传播结果，训练和推理开销极小。</p>
+
+          <h3>Medusa Head 架构设计</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">每个 Medusa Head 是一个简单的两层结构：一个线性投影层 + 一个 ReLU 激活 + 一个输出层。输入是主模型最后一层的隐藏状态 h_t（维度 d_model），输出是该位置对未来第 k 个位置的 token 概率分布。Medusa 通常使用 K 个 Head（K=3-5），分别预测 t+1, t+2, ..., t+K 位置的 token。每个 Head 的参数量约为主模型的 0.5%，K 个 Head 总共约 1.5-2.5%。Head 之间是独立的——Head-1 预测 t+1，Head-2 预测 t+2，以此类推。这种并行设计的好处是 Draft 速度极快（所有 Head 并行执行），缺点是 Head-2 的预测不依赖 Head-1 的结果，因此位置间的依赖关系被忽略了（这正是 Eagle 后来改进的方向）。</p>
+
+          <h3>Medusa-1 vs Medusa-2 训练策略</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>Medusa-1（冻结主干）：</strong>只训练新增的 Medusa Head，主模型参数完全冻结。训练数据来自主模型在指令数据集上的生成结果。损失函数为 K 个 Head 的交叉熵损失之和。优点：训练成本极低（单张 A100 训练几小时），不会影响主模型的质量。缺点：由于主模型冻结，Medusa Head 的预测能力受限于主模型的隐藏状态表征。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>Medusa-2（联合训练）：</strong>同时微调主模型和 Medusa Head。在标准的 NTP（Next Token Prediction）损失基础上，增加 Medusa Head 的辅助损失。这使得主模型的隐藏状态可以更好地被 Medusa Head 利用。优点：接受率比 Medusa-1 高 10-20%。缺点：需要更多训练资源（数天的 A100 训练），且可能轻微影响主模型在某些任务上的表现。</p>
+
+          <h3>Tree Attention 验证机制</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Medusa 的验证阶段使用 Tree Attention 将多个候选序列组织为树结构进行批量验证。具体地，假设使用 3 个 Head，每个 Head 取 Top-2 候选：Head-1 在 t+1 位置取 Top-2 token（A, B），Head-2 在 t+2 位置取 Top-2 token（C, D），Head-3 在 t+3 位置取 Top-2 token（E, F）。将这些候选组织为树：根节点为已生成的前缀，第一层为 {A, B}，第二层为 {A→C, A→D, B→C, B→D}，第三层为所有 8 条 3-token 路径。然后使用 Tree Attention 一次前向传播验证所有 8 条路径，找到最长的被接受前缀。</p>
+
+          <h3>接受率分析与加速比</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Medusa 的接受率取决于任务类型和模型大小。在 Vicuna-7B 上，Head-1（t+1 位置）的接受率约 0.7-0.8，Head-2（t+2 位置）约 0.5-0.6，Head-3（t+3 位置）约 0.3-0.4。由于 Tree Attention 的存在，即使 Head-2/3 的某个候选被拒绝，只要 Head-1 的候选被接受，仍然可以生成 1 个额外 token。端到端加速方面，Medusa 在 Vicuna-7B 上实现 2.2x，在 Vicuna-13B 上实现 2.5x，在 Vicuna-33B 上实现 3.0x 加速。加速比随模型增大而提升，因为大模型的单次前向传播延迟更高，投机解码的相对收益更大。</p>
+
           <h2><i class="fas fa-star"></i> 关键特性</h2>
           <ul class="feature-list">
-            <li><i class="fas fa-robot"></i><span>多头并行预测：在主模型最后一层隐藏状态上叠加多个 Medusa Head，每个头独立预测不同位置的 token</span></li>
-            <li><i class="fas fa-snowflake"></i><span>冻结主干模型：Medusa-1 模式下仅训练新增的预测头，主模型参数完全不动，训练成本极低</span></li>
-            <li><i class="fas fa-tree"></i><span>Tree Attention 验证：将多个候选序列组织为树状结构，通过一次前向传播验证所有分支，最大化 GPU 利用率</span></li>
-            <li><i class="fas fa-puzzle-piece"></i><span>即插即用：兼容 LLaMA、Mistral、Vicuna 等主流架构，无需修改原始模型结构</span></li>
-            <li><i class="fas fa-chart-line"></i><span>2-3x 加速：在 Vicuna-7B/13B/33B 上实现 2.2x-3.0x 端到端加速，质量损失可忽略</span></li>
-            <li><i class="fas fa-code-branch"></i><span>Medusa-2 联合训练：进一步微调主干模型与预测头，接受率更高但需要更多训练资源</span></li>
+            <li><i class="fas fa-robot"></i><span><strong>多头并行预测</strong>：在主模型最后一层隐藏状态上叠加 K 个 Medusa Head（K=3-5），每个头独立预测不同位置的 token，Draft 速度极快</span></li>
+            <li><i class="fas fa-snowflake"></i><span><strong>冻结主干模型</strong>：Medusa-1 模式下仅训练新增的预测头，主模型参数完全不动，训练成本极低（单张 A100 几小时）</span></li>
+            <li><i class="fas fa-tree"></i><span><strong>Tree Attention 验证</strong>：将多个候选序列组织为树状结构，通过一次前向传播验证所有分支，最大化 GPU 利用率</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>即插即用</strong>：兼容 LLaMA、Mistral、Vicuna 等主流架构，无需修改原始模型结构</span></li>
+            <li><i class="fas fa-chart-line"></i><span><strong>2-3x 加速</strong>：在 Vicuna-7B/13B/33B 上实现 2.2x-3.0x 端到端加速，质量损失可忽略</span></li>
+            <li><i class="fas fa-code-branch"></i><span><strong>Medusa-2 联合训练</strong>：进一步微调主干模型与预测头，接受率比 Medusa-1 高 10-20%，但需要更多训练资源</span></li>
           </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Medusa 和传统独立 Draft 模型的区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：传统投机解码使用一个独立的小模型（如 LLaMA-68M）作为 Draft，需要单独部署和运行，额外的 GPU 内存和计算开销较大。Medusa 在主模型上直接添加轻量级预测头，共享主模型的前向传播结果，不需要额外的模型。优势：（1）部署简单，无需管理两个模型；（2）内存开销小（额外 1-3% 参数）；（3）Draft 速度快（只需 Head 的前向传播）。劣势：（1）Draft 的多样性受限于 Head 的设计；（2）自回归依赖关系被忽略（各 Head 独立预测）。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：为什么 Medusa 的多个 Head 是独立预测的，这有什么问题？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Medusa 的 Head-1 预测 t+1，Head-2 预测 t+2，但 Head-2 不知道 Head-1 预测了什么。这意味着 Head-2 的预测是基于「如果 t+1 是任意 token」的条件概率，而不是「如果 t+1 是 A」的条件概率。这导致 Head-2/3 的预测准确性较低。Eagle 通过在特征空间中进行自回归 Draft（当前预测依赖前一个预测的结果）解决了这个问题，接受率显著提升。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Tree Attention 的 mask 矩阵如何设计？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Tree Attention 的 mask 矩阵需要保证因果性：每个节点只能看到其路径上的祖先节点和前缀 token。具体地，将树线性化为一个序列，对于节点 i 和 j，mask[i][j] = 1 当且仅当 j 是 i 的祖先或 j 位于 i 的「可见」范围内。实际实现中，mask 矩阵是稀疏的，可以通过 sparse attention 优化。关键点是位置编码的处理：同一深度的节点共享相对位置，不同深度递增。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：Medusa 的训练数据如何构造？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：训练数据来自主模型在指令数据集上的生成结果。具体做法：用主模型对训练数据进行前向传播，收集每个位置的隐藏状态 h_t 作为 Medusa Head 的输入，同时收集 t+1, t+2, ..., t+K 位置的真实 token 作为标签。对于 Medusa-1，主模型冻结，只需训练 Head；对于 Medusa-2，同时微调主模型和 Head，损失函数为 NTP 损失 + K 个 Head 的交叉熵损失之和。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：Medusa 在什么场景下比 Eagle 更合适？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：Medusa 的优势在于 Draft 速度极快（多个 Head 并行执行），且实现简单。在以下场景下 Medusa 可能更合适：（1）对延迟敏感的实时对话场景——Medusa 的 Draft 延迟更低；（2）计算资源有限的部署环境——Medusa 的 Head 更轻量；（3）不需要极高接受率的场景——Medusa 的 2-3x 加速可能已经够用。而 Eagle 在需要更高加速比（3-5x）的场景下更有优势，如批量处理、代码生成等。</p>
+          </div>
 
           <h2><i class="fas fa-link"></i> 相关资源</h2>
           <ul class="resource-links">
-            <li><a href="#"><i class="fas fa-file-pdf"></i>Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads (Cai et al., 2024)</a></li>
-            <li><a href="#"><i class="fas fa-github"></i>FasterDecoding/Medusa — 官方实现与预训练权重</a></li>
-            <li><a href="#"><i class="fas fa-book"></i>Together AI Blog: Accelerating LLM Inference with Medusa</a></li>
+            <li><a href="https://arxiv.org/abs/2401.10774" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads (Cai et al., 2024)</a></li>
+            <li><a href="https://github.com/FasterDecoding/Medusa" target="_blank" rel="noopener"><i class="fas fa-github"></i>FasterDecoding/Medusa — 官方实现与预训练权重</a></li>
+            <li><a href="https://www.together.ai/blog/medusa" target="_blank" rel="noopener"><i class="fas fa-book"></i>Together AI Blog: Accelerating LLM Inference with Medusa</a></li>
+            <li><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Fast Inference from Transformers via Speculative Decoding (Leviathan et al., 2023) — 投机解码原始论文</a></li>
           </ul>
 
           <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
