@@ -43,46 +43,38 @@
             <span>大模型推理</span>
           </div>
           <ul class="nav-children expanded">
-            <!-- Level 2: KV Cache -->
             <li class="nav-level2">
-              <div class="nav-header" data-level="2" data-page="kvcache" data-href="/articles/kvcache.html">
-                <span class="arrow">&#9654;</span>
-                <i class="fas fa-memory nav-icon"></i>
-                <span>KV Cache</span>
-              </div>
-            </li>
-            <!-- Level 2: 投机解码 -->
-            <li class="nav-level2">
-              <div class="nav-header" data-level="2">
-                <span class="arrow">&#9654;</span>
-                <i class="fas fa-bolt nav-icon"></i>
-                <span>投机解码 / Speculative Decoding</span>
-              </div>
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
               <ul class="nav-children">
-                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html">
-                  <i class="fas fa-file-alt nav-icon"></i>
-                  <span>Eagle-v1</span>
-                </li>
-                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html">
-                  <i class="fas fa-file-alt nav-icon"></i>
-                  <span>Eagle-v2</span>
-                </li>
-                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html">
-                  <i class="fas fa-file-alt nav-icon"></i>
-                  <span>Eagle-v3</span>
-                </li>
-                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html">
-                  <i class="fas fa-file-alt nav-icon"></i>
-                  <span>Medusa</span>
-                </li>
-                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html">
-                  <i class="fas fa-file-alt nav-icon"></i>
-                  <span>MTP</span>
-                </li>
-                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html">
-                  <i class="fas fa-file-alt nav-icon"></i>
-                  <span>N-gram 投机解码</span>
-                </li>
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
               </ul>
             </li>
           </ul>

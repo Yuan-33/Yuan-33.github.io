@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chunked Prefill — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">推理框架</a><span>›</span><span style="color:var(--text-primary)">Chunked Prefill</span>
+        </div>
+        <div class="content-card">
+          <h1>Chunked Prefill</h1>
+          <div class="subtitle">Inference Framework — Prefill-Decode Interleaving</div>
+          <div class="intro">Chunked Prefill 是一种将长 Prompt 的 Prefill 计算拆分为多个小块（Chunk），与 Decode 步骤交错执行的调度策略。它解决了长 Prompt Prefill 阻塞 Decode 的问题，显著降低了 Decode 请求的延迟（TTBT），同时保持了 GPU 的高利用率。vLLM v0.5+ 和 SGLang 均已原生支持 Chunked Prefill。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在 Continuous Batching 中，新请求需要先执行 Prefill 才能加入 Decode 批次。如果新请求的 Prompt 很长（例如 4K-8K token），Prefill 需要数十毫秒甚至数秒，在此期间所有正在 Decode 的请求都被阻塞——这就是「Prefill Stall」问题。Prefill Stall 会导致 Decode 请求的 Token-to-Token Time（TTBT）急剧增加，用户体验恶化。</p>
+
+          <h3>Prefill Stall 问题详解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Prefill 是 compute-bound——需要对整个 Prompt 进行一次完整的前向传播，计算量与 Prompt 长度成正比。Decode 是 memory-bound——每步只需计算一个 token 的前向传播，但需要读取整个 KV Cache。当一个长 Prompt 的 Prefill 与 Decode 混在同一轮时，Prefill 的长计算时间会阻塞 Decode：所有 Decode 请求必须等待 Prefill 完成才能生成下一个 token。假设 Prefill 耗时 100ms，Decode 批次中有 32 个请求，那么这 32 个请求的 TTBT 都会增加 100ms——这就是 Prefill Stall。</p>
+
+          <h3>Chunked Prefill 的拆分策略</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Chunked Prefill 的核心思想是将长 Prefill 拆分为多个小块（Chunk），每个 Chunk 的大小通常与 Decode 批次的 token 数量相当（例如 512-2048 token）。拆分后，每一轮 Forward Pass 中同时包含：（1）一个 Prefill Chunk（处理 Prompt 的一小部分）；（2）整个 Decode 批次的所有 Decode token。这样 Prefill 的计算量被分散到多轮中，每轮的计算时间不会显著增加，Decode 请求的 TTBT 保持稳定。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">具体流程：假设一个新请求的 Prompt 长度为 4096 token，Chunk 大小为 1024。拆分为 4 个 Chunk：（1）第 1 轮：执行 Chunk-1（token 0-1023）的 Prefill + 所有 Decode 请求的 Decode；（2）第 2 轮：执行 Chunk-2（token 1024-2047）的 Prefill + 所有 Decode 请求的 Decode；（3）第 3-4 轮：类似处理 Chunk-3 和 Chunk-4。4 轮完成后，新请求的 Prefill 全部完成，加入 Decode 批次。整个过程中 Decode 请求的 TTBT 增量仅为一个 Chunk 的 Prefill 时间（约 25ms），而非整个 Prompt 的 Prefill 时间（约 100ms）。</p>
+
+          <h3>Chunk 大小的选择</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Chunk 大小的选择需要在 TTBT 延迟和整体效率之间权衡：（1）Chunk 越小，每轮 Prefill 的计算量越小，Decode TTBT 增量越小，但 Prefill 的总轮数更多，调度开销更大；（2）Chunk 越大，Prefill 轮数更少，调度开销更小，但每轮 Prefill 的计算量更大，Decode TTBT 增量更大。实践中通常选择 512-2048 token 作为 Chunk 大小，这是一个在延迟和效率之间的平衡点。vLLM 默认 Chunk 大小为 2048，SGLang 默认为 512。</p>
+
+          <h3>与 Continuous Batching 的协同</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Chunked Prefill 是 Continuous Batching 的自然扩展。在调度层面，每一轮的 Forward Pass 由以下部分组成：（1）0-N 个 Prefill Chunk（来自新请求的不同 Chunk）；（2）所有活跃 Decode 请求的 Decode token。调度器需要决定每一轮放入多少 Prefill Chunk——过多会增加 Decode TTBT，过少会浪费 GPU 计算能力。一个简单的启发式规则是：每轮 Prefill Chunk 的总 token 数不超过 Decode 批次总 token 数的 2 倍。</p>
+
+          <h3>Prefill-Decode 分离架构</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Chunked Prefill 的进一步演进是 Prefill-Decode 分离架构（Disaggregated Serving）。在这种架构中，Prefill 和 Decode 运行在不同的 GPU/节点上：Prefill 节点专门处理 Prompt 的 Prefill 计算，Decode 节点专门处理自回归生成。Prefill 完成后，将 KV Cache 传输到 Decode 节点。这种分离使得 Prefill 和 Decode 可以独立扩缩容——当 Prefill 负载高时增加 Prefill 节点，当 Decode 负载高时增加 Decode 节点。代表系统：DistServe（2024）、Splitwise（2024）、Mooncake（2024）。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>Prefill 拆分</strong>：将长 Prompt 的 Prefill 拆分为多个小块（Chunk），与 Decode 交错执行，消除 Prefill Stall</span></li>
+            <li><i class="fas fa-clock"></i><span><strong>TTBT 降低 3-5x</strong>：Decode 请求的 Token-to-Token Time 增量从整个 Prefill 时间降低为单个 Chunk 时间</span></li>
+            <li><i class="fas fa-gauge-high"></i><span><strong>GPU 利用率保持高位</strong>：Prefill Chunk 与 Decode 混合执行，GPU 始终有计算任务，利用率接近 100%</span></li>
+            <li><i class="fas fa-sliders"></i><span><strong>可配置 Chunk 大小</strong>：支持 512-2048 token 的 Chunk 大小，在延迟和效率之间灵活权衡</span></li>
+            <li><i class="fas fa-server"></i><span><strong>支持 Prefill-Decode 分离</strong>：可扩展为 Prefill/Decode 运行在不同 GPU 的分离架构，独立扩缩容</span></li>
+            <li><i class="fas fa-code-branch"></i><span><strong>行业支持</strong>：vLLM v0.5+、SGLang、TensorRT-LLM 均已原生支持</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Chunked Prefill 解决了什么问题？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：解决了长 Prompt 的 Prefill 阻塞 Decode 的问题（Prefill Stall）。当一个长 Prompt（如 4K-8K token）进入系统时，其 Prefill 计算需要数十毫秒到数秒，在此期间所有正在 Decode 的请求都被阻塞，TTBT 急剧增加。Chunked Prefill 将 Prefill 拆分为多个小块，与 Decode 交错执行，使得 Decode 请求的 TTBT 增量仅为一个 Chunk 的 Prefill 时间。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：Chunked Prefill 的 Chunk 大小如何选择？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Chunk 大小通常为 512-2048 token。选择依据：（1）延迟需求——如果对 TTBT 延迟敏感，选择较小的 Chunk（512），每轮 Prefill 时间更短；（2）吞吐需求——如果更关注吞吐量，选择较大的 Chunk（2048），减少调度开销；（3）GPU 规模——大 GPU（如 H100）的计算能力更强，可以承受更大的 Chunk。vLLM 默认 2048，SGLang 默认 512。实践中通常在目标负载下进行 benchmark 来确定最优值。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Chunked Prefill 和 Prefix Caching 可以同时使用吗？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：可以，且效果叠加。Prefix Caching 缓存共享前缀的 KV Cache，减少需要 Prefill 的 token 数量；Chunked Prefill 将剩余需要 Prefill 的 token 拆分为小块。两者结合：首先通过 Prefix Caching 跳过已缓存的前缀部分，然后对未缓存的部分使用 Chunked Prefill 逐步处理。在系统提示词共享的场景下，Prefix Caching 可以跳过大部分 Prefill，Chunked Prefill 只需处理少量的用户输入部分。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：Prefill-Decode 分离架构的优势是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：分离架构将 Prefill 和 Decode 运行在不同的 GPU 上，优势在于：（1）独立扩缩容——Prefill 是 compute-bound，需要高算力 GPU；Decode 是 memory-bound，需要大显存。分离后可以针对各自特点选择最优硬件；（2）互不干扰——Prefill 的长计算不会阻塞 Decode，Decode 的 KV Cache 读取不会与 Prefill 的计算竞争 GPU 资源；（3）资源利用率更高——可以根据实时负载动态调整 Prefill/Decode 的 GPU 比例。劣势是需要在 GPU 之间传输 KV Cache，网络带宽成为瓶颈。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：Chunked Prefill 对 Prefill 总时间有影响吗？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：有轻微影响。Chunked Prefill 将 Prefill 拆分为多个 Chunk 与 Decode 交错执行，每轮 Prefill Chunk 的计算会与 Decode 的计算共享 GPU 资源，因此 Prefill 的总时间会略有增加（约 10-20%）。但这个代价是值得的——换来的是 Decode 请求的 TTBT 大幅降低。在高并发场景下，如果没有 Chunked Prefill，长 Prompt 的 Prefill 会导致所有 Decode 请求的 TTBT 飙升，用户体验急剧恶化。Chunked Prefill 通过牺牲少量 Prefill 效率，换取了整体系统的延迟稳定性。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>vLLM: PagedAttention — Chunked Prefill 在 vLLM v0.5+ 中实现</a></li>
+            <li><a href="https://arxiv.org/abs/2312.07104" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>SGLang: Efficient Execution of Structured Language Model Programs (Zheng et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2407.00075" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>DistServe: Disaggregated Serving for Goodput-Optimized LLM Inference (Zhong et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2407.01474" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Splitwise: Efficient LLM Inference with Heterogeneous GPU Disaggregation (Patel et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2407.00468" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving (Qin et al., 2024)</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

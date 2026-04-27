@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continuous Batching — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">推理框架</a><span>›</span><span style="color:var(--text-primary)">Continuous Batching</span>
+        </div>
+        <div class="content-card">
+          <h1>Continuous Batching</h1>
+          <div class="subtitle">Inference Framework — Iteration-Level Scheduling</div>
+          <div class="intro">Continuous Batching（也称 Iteration-Level Scheduling）是 LLM 推理服务的核心调度策略。与传统 Static Batching 需要等待整个批次完成不同，Continuous Batching 在每个 Decode 步骤动态调度请求——已完成的请求立即释放资源，新请求随时加入批次，最大化 GPU 利用率和系统吞吐量。这一技术由 Orca（OSDI 2022）首次提出，现已成为 vLLM、TensorRT-LLM、SGLang 等所有主流推理框架的标配。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">LLM 推理分为两个阶段：Prefill（预填充）处理输入 prompt 生成 KV Cache，是 compute-bound；Decode（解码）逐 token 生成输出，是 memory-bound。传统 Static Batching 将多个请求组成一个批次，等待所有请求都生成完毕后才释放资源。这导致严重的资源浪费——如果批次中有一个请求需要生成 1000 个 token，其他请求即使只生成 10 个 token 也必须等待。</p>
+
+          <h3>Static Batching 的问题</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Static Batching 的核心问题是「木桶效应」——整个批次的速度取决于最长的序列。具体表现为：（1）GPU 利用率低——当批次中部分请求已完成、部分仍在生成时，已完成请求的 GPU 资源（显存、计算单元）处于空闲状态，但无法被新请求使用；（2）延迟不可控——新请求必须等待当前批次全部完成才能被处理，队列延迟不可预测；（3）显存浪费——所有请求都预分配最大序列长度的 KV Cache，即使实际生成长度远小于最大长度。</p>
+
+          <h3>Continuous Batching 的调度机制</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Continuous Batching 在每个 Decode 步骤（iteration）进行调度决策：（1）检查当前批次中是否有请求已完成生成（遇到 EOS token 或达到最大长度），已完成的请求立即从批次中移除，释放其 KV Cache 和 GPU 资源；（2）从等待队列中取出新请求，执行 Prefill 后加入当前批次；（3）对当前批次中的所有请求执行一次 Decode 步骤，每个请求生成一个 token；（4）重复上述过程。这种「每步调度」的方式使得 GPU 始终保持高利用率——没有请求等待，没有资源空闲。</p>
+
+          <h3>Prefill 与 Decode 的混批</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Continuous Batching 的一个关键设计决策是如何处理 Prefill 和 Decode 的混合。由于 Prefill 是 compute-bound（大量矩阵乘法），Decode 是 memory-bound（大量显存读取），两者的计算特性差异很大。早期的实现（如 Orca）将 Prefill 和 Decode 放在同一个批次中执行，但这会导致 Prefill 的长计算阻塞 Decode 的低延迟需求。现代框架（如 vLLM、SGLang）采用「Prefill-Decode 分离」策略：在调度时，新请求的 Prefill 和已有请求的 Decode 交替执行，或者将 Prefill 拆分为多个小块（Chunked Prefill）与 Decode 交错执行，避免 Prefill 阻塞 Decode。</p>
+
+          <h3>调度策略优化</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Continuous Batching 的调度策略直接影响系统的吞吐量和延迟。常见的优化策略包括：（1）FIFO（先来先服务）——最简单，但可能导致短请求被长请求阻塞；（2）Shortest Job First（SJF）——优先处理预估生成长度短的请求，降低平均延迟；（3）Preemptive Scheduling（抢占式调度）——当 GPU 资源紧张时，暂停低优先级请求，优先处理高优先级请求，暂停的请求稍后恢复（通过 Swap 或重新 Prefill）；（4）Fair Scheduling（公平调度）——保证每个请求获得公平的 GPU 时间，避免饥饿。</p>
+
+          <h3>与 PagedAttention 的协同</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Continuous Batching 的高效运行依赖 PagedAttention 的内存管理。当请求被移除时，PagedAttention 将其物理块归还空闲池；当新请求加入时，从空闲池按需分配物理块。没有 PagedAttention，Continuous Batching 的内存管理会非常复杂（需要处理连续显存的分配和回收）。两者结合使得 vLLM 等框架可以同时服务数百个并发请求，GPU 利用率接近 100%。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-sync"></i><span><strong>每步调度</strong>：在每个 Decode 步骤动态添加/移除请求，消除 Static Batching 的木桶效应</span></li>
+            <li><i class="fas fa-gauge-high"></i><span><strong>GPU 利用率接近 100%</strong>：已完成请求立即释放资源，新请求随时加入，GPU 始终保持忙碌</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>吞吐量提升 2-10x</strong>：相比 Static Batching，吞吐量提升 2-10 倍（取决于请求长度方差）</span></li>
+            <li><i class="fas fa-clock"></i><span><strong>更低的延迟</strong>：新请求无需等待当前批次完成，队列延迟大幅降低</span></li>
+            <li><i class="fas fa-exchange-alt"></i><span><strong>支持抢占</strong>：资源紧张时可以暂停低优先级请求，支持 Swap 到 CPU 或重新 Prefill</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>行业标配</strong>：vLLM、TensorRT-LLM、SGLang、LMDeploy、DeepSpeed-FastGen 等所有主流框架均已支持</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Continuous Batching 和 Static Batching 的核心区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Static Batching 在批次级别调度——将多个请求组成一个批次，等所有请求完成后才释放资源、处理下一批。Continuous Batching 在迭代级别调度——每个 Decode 步骤都进行调度决策，完成的请求立即移除，新请求随时加入。核心区别是调度粒度：Static 是「批次级」，Continuous 是「步级」。这消除了木桶效应，使得 GPU 利用率从 30-60% 提升至 80-95%。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：Continuous Batching 中 Prefill 和 Decode 如何协调？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Prefill 是 compute-bound，Decode 是 memory-bound，混批会导致 Prefill 阻塞 Decode。现代框架有两种处理方式：（1）交替执行——在调度层面，先执行一轮 Prefill（处理新请求），再执行一轮 Decode（处理已有请求），交替进行；（2）Chunked Prefill——将长 Prefill 拆分为多个小块，与 Decode 交错执行在同一轮中。后者更细粒度，可以更好地平衡 Prefill 和 Decode 的延迟。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Continuous Batching 如何处理请求的抢占（Preemption）？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：当 GPU 资源（主要是显存）不足以容纳所有活跃请求时，需要抢占部分请求。抢占的方式有两种：（1）Swap——将被抢占请求的 KV Cache 从 GPU 交换到 CPU 内存，释放 GPU 显存给其他请求，稍后恢复时再从 CPU 加载回来；（2）Recompute——直接丢弃被抢占请求的 KV Cache，恢复时重新执行 Prefill 重建 KV Cache。Swap 的恢复更快但需要 CPU 内存，Recompute 不需要额外内存但恢复时间更长。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：为什么 Continuous Batching 需要 PagedAttention 的配合？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Continuous Batching 的动态调度意味着请求的添加和移除是频繁且不可预测的。如果使用传统的连续显存分配方案，频繁的分配和回收会导致严重的内存碎片。PagedAttention 的分页机制天然适合这种动态场景——物理块可以被任意请求使用，添加请求时分配块，移除请求时释放块，没有碎片问题。两者结合是现代 LLM 推理系统的基础架构。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：Continuous Batching 的吞吐量提升来自哪里？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：主要来自三个方面：（1）消除木桶效应——不再等待最长序列完成，GPU 利用率大幅提升；（2）资源即时回收——完成的请求立即释放显存，新请求可以立即使用，没有空闲期；（3）批处理效率——GPU 的并行计算能力在 batch size 较大时更高效，Continuous Batching 通过动态调度维持较大的有效 batch size。实测在真实负载下，吞吐量提升 2-10 倍。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://www.usenix.org/conference/osdi22/presentation/yu" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Orca: A Distributed Serving System for Transformer-Based Generative Models (Yu et al., OSDI 2022)</a></li>
+            <li><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener"><i class="fas fa-github"></i>vLLM — Continuous Batching + PagedAttention 实现</a></li>
+            <li><a href="https://github.com/NVIDIA/TensorRT-LLM" target="_blank" rel="noopener"><i class="fas fa-github"></i>TensorRT-LLM — Inflight Batching（NVIDIA 的 Continuous Batching 实现）</a></li>
+            <li><a href="https://arxiv.org/abs/2312.07104" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>SGLang: Efficient Execution of Structured Language Model Programs (Zheng et al., 2024)</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

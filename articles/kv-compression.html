@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KV Cache 压缩 — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">KV Cache 优化</a><span>›</span><span style="color:var(--text-primary)">KV Cache 压缩</span>
+        </div>
+        <div class="content-card">
+          <h1>KV Cache 压缩</h1>
+          <div class="subtitle">KV Cache — Compression & Quantization</div>
+          <div class="intro">KV Cache 压缩是通过减少 KV Cache 的存储大小来降低显存占用和提升推理效率的技术。主要方法包括：架构层面的 GQA/MQA 减少 KV Head 数量、量化层面的 KV Cache 低比特量化、以及算法层面的 Token 剪枝（H2O、SnapKV 等）。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">KV Cache 的显存占用公式为：2 × num_layers × num_kv_heads × head_dim × seq_len × dtype_bytes。以 LLaMA-2-70B 为例（80 层、8 个 KV Head、128 维、FP16），处理 4096 token 的 KV Cache 大小为 2 × 80 × 8 × 128 × 4096 × 2 = 1.34GB。当 batch size 增大时，KV Cache 的显存开销线性增长，成为推理的主要瓶颈。KV Cache 压缩的目标是在尽量不影响模型质量的前提下，减小这个显存占用。</p>
+
+          <h3>架构层面：GQA 与 MQA</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>Multi-Query Attention (MQA)：</strong>所有 Query Head 共享同一组 Key/Value Head。例如模型有 32 个 Query Head，但只有 1 个 KV Head。KV Cache 大小缩小为原来的 1/32。优点：压缩率极高，推理速度快。缺点：模型质量有一定下降（约 1-2%），需要从头训练或进行充分的微调。代表模型：Falcon、PaLM。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>Grouped-Query Attention (GQA)：</strong>将 Query Head 分为若干组，每组共享一组 KV Head。例如 32 个 Query Head 分为 8 组，每组 4 个 Query Head 共享 1 个 KV Head，总共 8 个 KV Head。KV Cache 大小缩小为原来的 1/4。GQA 是 MQA 和 MHA（Multi-Head Attention）的折中——在压缩率和模型质量之间取得平衡。代表模型：LLaMA-2（70B 使用 8 个 KV Head）、Mistral、Qwen。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>Multi-head Latent Attention (MLA)：</strong>DeepSeek-V2/V3 提出的方法，将 KV 投影到低维潜空间（latent space），存储压缩后的潜向量而非完整的 KV。推理时再从潜向量恢复 KV。MLA 可以将 KV Cache 压缩到原来的 5-10%，同时保持接近 MHA 的模型质量。这是目前最先进的 KV Cache 架构层面压缩方案。</p>
+
+          <h3>量化层面：KV Cache 低比特量化</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">KV Cache 量化将 KV 张量从 FP16/BF16（16-bit）量化为 INT8、INT4 甚至 INT2，显存占用成比例减少。关键挑战是量化精度——KV 张量的分布与权重不同，存在较多的异常值（outlier），直接量化会导致精度损失。主要方法：</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>KIVI（2024）：</strong>发现 Key 张量存在按 channel 维度的异常值，Value 张量存在按 token 维度的异常值。因此对 Key 按 channel 维度、Value 按 token 维度进行分组量化，异常值通道保留高精度（FP16），其他通道量化为 INT2/INT4。实现了 2-bit KV Cache 量化，精度损失可忽略。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>KVQuant（2024）：</strong>结合了 per-channel 量化、稀疏异常值存储、和非均匀量化等技术，实现了 3-bit KV Cache 量化，在长上下文场景下质量几乎无损。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>Gear（2024）：</strong>使用低秩矩阵近似 KV Cache 的主要成分，剩余的残差用低精度量化存储。这种方法在极低比特（2-bit）下仍能保持较好的质量。</p>
+
+          <h3>算法层面：Token 剪枝</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Token 剪枝的思想是：并非所有历史 token 的 KV 都同等重要，可以根据注意力分数筛选重要 token 进行保留，丢弃不重要的 token，从而减小 KV Cache 的有效长度。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>H2O（Heavy-Hitter Oracle，2023）：</strong>发现 Attention 分数遵循幂律分布——少数 token（Heavy Hitter）获得了大部分注意力分数。H2O 维护一个固定大小的 KV Cache 窗口，保留注意力分数最高的 token，丢弃分数最低的 token。实现了 2-5x 的 KV Cache 压缩，质量损失较小。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:12px;"><strong>SnapKV（2024）：</strong>在 Prefill 阶段观察 Attention 分数的分布，自动识别重要 token 并保留其 KV Cache。SnapKV 的优势是不需要在 Decode 阶段进行动态剪枝，而是在 Prefill 时一次性决定保留哪些 token，Decode 阶段的 KV Cache 大小固定，推理效率更高。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;"><strong>PyramidKV（2024）：</strong>发现不同 Attention 层的 KV Cache 重要性分布不同——浅层需要保留更多 token（注意力更分散），深层可以保留更少 token（注意力更集中）。PyramidKV 为不同层设置不同的保留数量，呈金字塔形状（浅层多、深层少），实现了更好的压缩-质量平衡。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-layer-group"></i><span><strong>GQA/MQA</strong>：通过减少 KV Head 数量压缩 KV Cache，GQA 压缩 4-8x，MQA 压缩 32x，代表模型 LLaMA-2/Mistral/Falcon</span></li>
+            <li><i class="fas fa-compress"></i><span><strong>MLA（DeepSeek）</strong>：将 KV 投影到低维潜空间，压缩 10-20x，同时保持接近 MHA 的质量</span></li>
+            <li><i class="fas fa-balance-scale"></i><span><strong>KV Cache 量化</strong>：KIVI/KVQuant/Gear 将 KV 量化为 2-4 bit，显存减少 4-8x，长上下文场景质量几乎无损</span></li>
+            <li><i class="fas fa-cut"></i><span><strong>Token 剪枝</strong>：H2O/SnapKV/PyramidKV 根据注意力分数筛选重要 token，KV Cache 长度压缩 2-5x</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>可组合使用</strong>：架构压缩（GQA）+ 量化（INT4）+ 剪枝（H2O）可以叠加，总压缩率可达 20-50x</span></li>
+            <li><i class="fas fa-rocket"></i><span><strong>支持更长上下文</strong>：压缩后相同显存可以处理 2-10x 更长的上下文长度</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：GQA 和 MQA 的区别是什么？各自的优缺点？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：MQA（Multi-Query Attention）是所有 Query Head 共享同一组 KV Head（KV Head 数 = 1），GQA（Grouped-Query Attention）是将 Query Head 分组，每组共享一组 KV Head（KV Head 数 = 组数）。MQA 的压缩率最高（32x），但质量损失较大（1-2%），需要从头训练。GQA 是 MQA 和 MHA 的折中，压缩率 4-8x，质量损失很小（<0.5%），且可以从 MHA 模型通过微调转换。实践中 GQA 更常用（LLaMA-2、Mistral）。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：KV Cache 量化和权重量化有什么区别？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：权重量化是将模型权重从 FP16 量化为 INT8/INT4，是一次性的，量化后模型大小固定。KV Cache 量化是将推理过程中动态生成的 KV 张量量化，是持续性的。KV Cache 量化的挑战在于：（1）KV 张量的分布与权重不同，存在按 channel/token 维度的异常值；（2）量化误差会累积——每一步 Decode 都会产生新的量化误差；（3）需要在推理时动态进行量化/反量化。KIVI 通过分组量化策略解决了异常值问题，实现了 2-bit KV Cache 量化。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：H2O 的 Heavy Hitter 是什么？如何识别？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Heavy Hitter 是指在 Attention 计算中获得了异常高注意力分数的 token。研究发现，Attention 分数遵循幂律分布——少数 token 获得了大部分注意力，大多数 token 的注意力分数接近零。H2O 通过累积注意力分数来识别 Heavy Hitter：维护每个 token 的历史注意力分数之和，保留分数最高的 Top-K 个 token 的 KV Cache，丢弃其余 token。K 通常设为序列长度的 20-50%。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：DeepSeek 的 MLA 是如何压缩 KV Cache 的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：MLA（Multi-head Latent Attention）的核心思想是将 KV 投影到一个低维的潜空间。具体地，对于每个 token 的 KV，先通过一个下投影矩阵压缩到低维向量（例如从 4096 维压缩到 512 维），只存储这个低维向量。推理时，通过上投影矩阵从低维向量恢复出完整的 KV。由于下投影矩阵是学习得到的，可以保留最重要的信息，压缩率可达 10-20x 且质量损失很小。DeepSeek-V2/V3 使用 MLA 将 KV Cache 压缩到原来的约 5-10%。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：这些压缩方法可以组合使用吗？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：可以，且实践中经常组合使用。例如：（1）GQA（4x 压缩）+ INT4 量化（4x 压缩）= 16x 总压缩；（2）MLA（10x 压缩）+ Token 剪枝（2x 压缩）= 20x 总压缩；（3）GQA + INT4 量化 + H2O 剪枝 = 30-50x 总压缩。组合使用时需要注意：量化和剪枝的误差可能叠加，需要在目标数据集上验证质量。通常建议先做架构层面的压缩（GQA/MLA），再做量化，最后做剪枝。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>GQA: Training Generalized Multi-Query Transformer Models (Ainslie et al., 2023)</a></li>
+            <li><a href="https://arxiv.org/abs/2407.21018" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache (Liu et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2401.06104" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>KVQuant: Towards 10 Million Context Length LLM Inference with KV Cache Quantization (Hooper et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2306.14048" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>H2O: Heavy-Hitter Oracle for Efficient Generative Inference (Zhang et al., 2023)</a></li>
+            <li><a href="https://arxiv.org/abs/2404.14469" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>SnapKV: LLM Knows What You are Looking for Before Generation (Li et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2405.12532" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>DeepSeek-V2: A Strong, Economical, and Efficient MoE LLM — MLA 架构</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

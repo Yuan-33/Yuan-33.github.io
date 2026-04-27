@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prefix Caching — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">KV Cache 优化</a><span>›</span><span style="color:var(--text-primary)">Prefix Caching</span>
+        </div>
+        <div class="content-card">
+          <h1>Prefix Caching</h1>
+          <div class="subtitle">KV Cache — Prefix Reuse & RadixAttention</div>
+          <div class="intro">Prefix Caching 是一种跨请求复用 KV Cache 的优化技术。当多个请求共享相同的前缀（如系统提示词、Few-shot 示例）时，只需计算一次前缀的 KV Cache，后续请求直接复用，避免重复的 Prefill 计算。SGLang 的 RadixAttention 将这一思想推广为基于 Radix Tree 的通用前缀共享框架。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在 LLM 服务中，大量请求共享相同的前缀——例如同一个应用的所有请求都使用相同的系统提示词（System Prompt），或者同一个 RAG 管道中的多个请求使用相同的检索上下文。传统推理系统对每个请求独立执行 Prefill，即使前缀完全相同也要重复计算。Prefix Caching 的核心思想是：将前缀的 KV Cache 缓存起来，当新请求的前缀与缓存匹配时，直接跳过 Prefill 阶段，从缓存位置开始生成。</p>
+
+          <h3>Prefix 匹配策略</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Prefix Caching 的关键挑战是如何高效地匹配前缀。最简单的方案是精确匹配——对前缀的 token 序列计算哈希值，在缓存中查找。但这种方式只能匹配完全相同的前缀，无法处理「前缀 A 是前缀 B 的子串」的情况。更先进的方案是使用 Radix Tree（基数树）来组织缓存：每个节点代表一个 token 序列片段，从根到叶的路径构成一个完整的前缀。新请求到达时，从 Radix Tree 的根开始逐 token 匹配，找到最长的公共前缀，直接复用其 KV Cache。SGLang 的 RadixAttention 就采用了这种方案。</p>
+
+          <h3>RadixAttention 详解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">SGLang 的 RadixAttention 将 Prefix Caching 推广为一个通用的前缀共享框架。核心数据结构是一棵 Radix Tree，每个节点存储一段 token 序列及其对应的 KV Cache 物理块。Radix Tree 支持三种操作：（1）查找——从根开始匹配最长公共前缀，返回匹配长度和对应的 KV Cache；（2）插入——将新的前缀及其 KV Cache 插入树中；（3）淘汰——当缓存空间不足时，使用 LRU 策略淘汰最近最少使用的节点。RadixAttention 还支持多级前缀共享——例如系统提示词是一级前缀，RAG 检索结果是二级前缀，用户输入是三级前缀，不同级别的前缀可以独立缓存和复用。</p>
+
+          <h3>Prefix Caching 的收益分析</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Prefix Caching 的收益取决于前缀的共享程度和长度。在以下场景中收益最大：（1）系统提示词共享——同一个应用的所有请求共享相同的系统提示词（通常 500-2000 token），Prefix Caching 可以将 Prefill 时间减少 50-80%；（2）Few-shot 示例共享——所有请求使用相同的 Few-shot 示例（通常 1000-3000 token），Prefill 时间减少 60-90%；（3）多轮对话——同一会话的后续轮次可以复用前几轮的 KV Cache，Prefill 只需处理新增的用户输入；（4）Agent 调用——同一个 Agent 的多次工具调用共享相同的上下文，Prefill 开销大幅降低。</p>
+
+          <h3>与 PagedAttention 的协同</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Prefix Caching 与 PagedAttention 天然兼容。在 vLLM 中，Prefix Caching 通过在 PagedAttention 的块表层面实现：共享前缀的多个请求的块表指向相同的物理块（通过引用计数管理），只有不共享的部分才分配新的物理块。这与 Copy-on-Write 的机制完全一致——共享时只读，需要修改时才复制。SGLang 的 RadixAttention 也基于类似的设计，Radix Tree 的每个节点对应 PagedAttention 的一组物理块。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-copy"></i><span><strong>前缀复用</strong>：共享相同前缀的多个请求复用同一份 KV Cache，避免重复 Prefill 计算，Prefill 时间减少 50-90%</span></li>
+            <li><i class="fas fa-tree"></i><span><strong>Radix Tree 组织</strong>：使用 Radix Tree 管理缓存，支持最长前缀匹配和多级前缀共享</span></li>
+            <li><i class="fas fa-clock"></i><span><strong>TTFT 大幅降低</strong>：在系统提示词共享场景下，首 Token 延迟（TTFT）降低 50-80%</span></li>
+            <li><i class="fas fa-layer-group"></i><span><strong>多级缓存</strong>：支持系统提示词、RAG 上下文、用户输入等多级前缀独立缓存和复用</span></li>
+            <li><i class="fas fa-sync"></i><span><strong>与 PagedAttention 兼容</strong>：在块表层面实现前缀共享，通过引用计数管理物理块的生命周期</span></li>
+            <li><i class="fas fa-brain"></i><span><strong>LRU 淘汰策略</strong>：缓存空间不足时自动淘汰最近最少使用的前缀，保证缓存命中率</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Prefix Caching 和 KV Cache 有什么区别？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：KV Cache 是单个请求内部的优化——缓存当前请求已经计算过的 Key/Value，避免在自回归生成中重复计算。Prefix Caching 是跨请求的优化——缓存不同请求之间共享的前缀 KV Cache，避免多个请求重复计算相同的前缀。两者是不同层面的优化，可以同时使用。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：RadixAttention 的 Radix Tree 是如何工作的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Radix Tree 是一种压缩前缀树，每个节点代表一段 token 序列（而非单个 token）。新请求到达时，从根节点开始逐段匹配，找到最长的公共前缀节点，直接复用其 KV Cache。匹配结束后，将不匹配的部分作为新节点插入树中。当缓存空间不足时，使用 LRU 策略淘汰最近最少使用的叶子节点。Radix Tree 的查找复杂度为 O(前缀长度/段长度)，非常高效。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Prefix Caching 在多轮对话中如何工作？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：在多轮对话中，每一轮的输入包含之前所有轮次的历史。Prefix Caching 可以缓存前 N-1 轮的 KV Cache，当第 N 轮到达时，只需 Prefill 第 N 轮新增的用户输入，历史部分直接从缓存中加载。这使得多轮对话的 Prefill 时间与轮次无关，始终保持在单轮的水平。实现上，每一轮结束后将其 KV Cache 注册到 Radix Tree 中，下一轮到达时自动匹配。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：Prefix Caching 的缓存一致性如何保证？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Prefix Caching 的缓存是只读的——一旦前缀的 KV Cache 被缓存，就不会被修改。共享同一前缀的多个请求通过引用计数管理物理块：当所有引用都释放时，物理块才被回收。这避免了缓存一致性问题。在 vLLM 中，Prefix Caching 与 PagedAttention 的 Copy-on-Write 机制结合，共享块只读，需要修改时（如序列分叉）才复制。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：什么场景下 Prefix Caching 收益最大？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：收益最大的场景是：（1）大量请求共享长系统提示词——如企业级 LLM 应用，所有请求使用相同的 1000+ token 系统提示词；（2）RAG 应用——多个请求使用相同的检索上下文；（3）多轮对话——同一会话的后续轮次复用历史 KV Cache；（4）Agent 调用——同一个 Agent 的多次工具调用共享上下文。在这些场景下，Prefix Caching 可以将 Prefill 时间减少 50-90%，显著降低 TTFT。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2312.07104" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>SGLang: Efficient Execution of Structured Language Model Programs (Zheng et al., 2024)</a></li>
+            <li><a href="https://github.com/sgl-project/sglang" target="_blank" rel="noopener"><i class="fas fa-github"></i>SGLang — RadixAttention 官方实现</a></li>
+            <li><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener"><i class="fas fa-github"></i>vLLM — Automatic Prefix Caching 实现</a></li>
+            <li><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>PagedAttention (Kwon et al., SOSP 2023) — Prefix Caching 的底层支撑</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

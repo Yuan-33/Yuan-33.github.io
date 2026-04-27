@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PagedAttention — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">KV Cache 优化</a><span>›</span><span style="color:var(--text-primary)">PagedAttention</span>
+        </div>
+        <div class="content-card">
+          <h1>PagedAttention</h1>
+          <div class="subtitle">KV Cache — Virtual Memory for LLM Serving</div>
+          <div class="intro">PagedAttention 是 vLLM 提出的核心内存管理技术，借鉴操作系统的虚拟内存分页机制，将 KV Cache 划分为固定大小的物理块（Block），按需分配显存，消除了传统预分配方案导致的内存碎片和浪费，将显存利用率从 20-40% 提升至接近 100%。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统 LLM 推理系统在处理一个请求时，会为其预分配一块连续的显存来存储 KV Cache，大小等于最大序列长度 × 每层 KV 头数 × 头维度 × 层数 × 2（K 和 V）。但实际生成过程中，序列长度是动态增长的，预分配的显存大部分时间处于空闲状态。当同时服务多个请求时，每个请求都预分配最大长度的 KV Cache，导致大量显存碎片和浪费（实测利用率仅 20-40%）。</p>
+
+          <h3>分页机制详解</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">PagedAttention 将 KV Cache 的物理存储划分为固定大小的块（Block），每个块存储固定数量 token 的 KV 张量（例如每块 16 个 token）。请求的 KV Cache 不需要在物理显存中连续存储，而是通过一个「块表」（Block Table）维护逻辑块到物理块的映射关系。这与操作系统的虚拟内存分页完全类似：逻辑地址（请求的第 i 个 token）通过块表映射到物理地址（GPU 显存中的某个块）。</p>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">具体流程：（1）新请求到达时，不预分配最大长度的显存，而是只分配一个初始块（存储前 16 个 token 的 KV）；（2）随着生成过程推进，当当前块填满时，从空闲块池中分配一个新物理块，更新块表；（3）当请求完成或被中断时，释放其所有物理块，归还空闲块池。这种按需分配的方式消除了预分配导致的内存碎片——每个请求只占用实际使用的显存，而不是最大可能的显存。</p>
+
+          <h3>Attention 计算适配</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">分页存储带来了一个挑战：Attention 计算需要访问连续的 KV 序列，但物理块是非连续的。PagedAttention 通过修改 Attention kernel 来适配：在计算 Attention 时，先根据块表找到所有物理块的地址，然后在 kernel 中按块遍历 KV，而非按连续内存遍历。具体地，Attention 计算变为：对于 Query q，依次从每个物理块加载 K/V，计算局部 Attention 分数，最后合并得到完整结果。这种分块计算方式与 FlashAttention 的分块思想类似，可以很好地与 FlashAttention 融合。</p>
+
+          <h3>显存利用率分析</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">PagedAttention 的显存浪费仅来自最后一个块的内部碎片（平均浪费 0.5 个块 × 块大小）。以块大小 16 为例，平均浪费为 8 个 token 的 KV Cache，相比传统方案（预分配 2048 或 4096 token 的空间）可以忽略不计。论文实测数据：在相同显存下，PagedAttention 可以服务的并发请求数量是传统方案的 2-4 倍，直接提升了系统的吞吐量。</p>
+
+          <h3>Copy-on-Write 与并行采样</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">PagedAttention 还支持 Copy-on-Write（CoW）优化。在并行采样（一个请求生成多个候选回复）场景下，多个采样序列共享相同的前缀 KV Cache，只有在产生分叉时才复制物理块。具体地，多个采样序列的块表指向相同的物理块（共享），当某个序列的 token 与前缀不同时，才分配新的物理块并复制数据（CoW）。这在 beam search、best-of-N 等场景下可以节省大量显存——例如 best-of-4 采样，KV Cache 的显存开销仅为独立存储的约 1.2 倍（而非 4 倍）。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-memory"></i><span><strong>分页显存管理</strong>：将 KV Cache 划分为固定大小的物理块，按需分配，消除内存碎片，显存利用率从 20-40% 提升至接近 100%</span></li>
+            <li><i class="fas fa-table"></i><span><strong>块表映射</strong>：通过逻辑块→物理块的映射表，支持非连续存储，无需预分配连续显存</span></li>
+            <li><i class="fas fa-copy"></i><span><strong>Copy-on-Write</strong>：支持多个采样序列共享前缀 KV Cache，分叉时才复制，best-of-N 场景显存节省 3-4 倍</span></li>
+            <li><i class="fas fa-tachometer-alt"></i><span><strong>吞吐量提升 2-4x</strong>：相同显存下可服务的并发请求数量是传统方案的 2-4 倍</span></li>
+            <li><i class="fas fa-puzzle-piece"></i><span><strong>与 FlashAttention 兼容</strong>：分块 Attention 计算可以与 FlashAttention 融合，不损失计算效率</span></li>
+            <li><i class="fas fa-cogs"></i><span><strong>灵活的块大小</strong>：支持配置块大小（通常 8-32），在显存利用率和计算效率之间权衡</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：PagedAttention 解决了什么问题？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：解决了传统 LLM 推理系统中 KV Cache 的内存碎片和浪费问题。传统方案为每个请求预分配最大序列长度的连续显存，但实际生成长度通常远小于最大长度，导致大量显存空闲。PagedAttention 借鉴 OS 分页机制，将 KV Cache 划分为固定大小的块按需分配，消除了碎片，显存利用率从 20-40% 提升至接近 100%。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：PagedAttention 的块表（Block Table）是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：块表是逻辑块到物理块的映射表，类似于操作系统的页表。每个请求维护一个块表，记录其第 i 个逻辑块对应 GPU 显存中的哪个物理块。Attention 计算时，通过块表找到所有物理块的地址，按块遍历 KV 进行计算。块表的大小与序列长度成正比（每 16 个 token 一个表项），开销很小。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Copy-on-Write 在什么场景下最有效？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：在并行采样（best-of-N）、Beam Search、以及 Prefix Caching 场景下最有效。这些场景中，多个序列共享相同的前缀（如系统提示词、相同的输入），CoW 允许它们共享同一份 KV Cache 物理块，只有在产生分叉时才复制。例如 best-of-4 采样，如果不使用 CoW 需要 4 倍的 KV Cache 显存，使用 CoW 后只需约 1.2 倍。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：PagedAttention 的块大小如何选择？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：块大小通常为 8-32 个 token。块越小，内部碎片越少（最后一个块的浪费越小），但块表的开销更大，且 Attention kernel 的分块计算效率更低。块越大，计算效率更高（减少分块次数），但内部碎片更多。实践中通常选择 16，这是一个在显存利用率和计算效率之间的平衡点。vLLM 默认块大小为 16。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：PagedAttention 和 FlashAttention 是什么关系？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：两者解决不同层面的问题，可以协同工作。FlashAttention 优化的是 Attention 计算的 IO 效率（减少 HBM 读写），PagedAttention 优化的是 KV Cache 的显存管理（消除碎片）。PagedAttention 的分块 Attention 计算与 FlashAttention 的分块思想天然兼容——在每个物理块内使用 FlashAttention 进行高效计算，块间通过块表进行跳转。实际系统（如 vLLM）中两者是同时使用的。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Efficient Memory Management for Large Language Model Serving with PagedAttention (Kwon et al., SOSP 2023)</a></li>
+            <li><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener"><i class="fas fa-github"></i>vLLM — PagedAttention 官方实现</a></li>
+            <li><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., 2022)</a></li>
+            <li><a href="https://blog.vllm.ai/2023/06/20/vllm.html" target="_blank" rel="noopener"><i class="fas fa-book"></i>vLLM Blog: PagedAttention 原理详解</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>

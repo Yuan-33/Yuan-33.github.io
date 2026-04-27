@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Parallelism — AI-Infra 技术研究</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <a href="/" class="navbar-brand" style="text-decoration:none;"><i class="fas fa-microchip icon"></i>AI-Infra 技术研究</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="https://github.com" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <ul class="nav-tree" id="navTree">
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow open">&#9654;</span><i class="fas fa-brain nav-icon"></i><span>大模型推理</span></div>
+          <ul class="nav-children expanded">
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-memory nav-icon"></i><span>KV Cache 优化</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="pagedattention" data-href="/articles/pagedattention.html"><i class="fas fa-file-alt nav-icon"></i><span>PagedAttention</span></li>
+                <li class="nav-level3" data-page="prefix-caching" data-href="/articles/prefix-caching.html"><i class="fas fa-file-alt nav-icon"></i><span>Prefix Caching</span></li>
+                <li class="nav-level3" data-page="kv-compression" data-href="/articles/kv-compression.html"><i class="fas fa-file-alt nav-icon"></i><span>KV Cache 压缩</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-bolt nav-icon"></i><span>投机解码 / Speculative Decoding</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="eagle-v1" data-href="/articles/eagle-v1.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v1</span></li>
+                <li class="nav-level3" data-page="eagle-v2" data-href="/articles/eagle-v2.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v2</span></li>
+                <li class="nav-level3" data-page="eagle-v3" data-href="/articles/eagle-v3.html"><i class="fas fa-file-alt nav-icon"></i><span>Eagle-v3</span></li>
+                <li class="nav-level3" data-page="medusa" data-href="/articles/medusa.html"><i class="fas fa-file-alt nav-icon"></i><span>Medusa</span></li>
+                <li class="nav-level3" data-page="mtp" data-href="/articles/mtp.html"><i class="fas fa-file-alt nav-icon"></i><span>MTP</span></li>
+                <li class="nav-level3" data-page="ngram" data-href="/articles/ngram.html"><i class="fas fa-file-alt nav-icon"></i><span>N-gram 投机解码</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-server nav-icon"></i><span>推理框架</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="continuous-batching" data-href="/articles/continuous-batching.html"><i class="fas fa-file-alt nav-icon"></i><span>Continuous Batching</span></li>
+                <li class="nav-level3" data-page="chunked-prefill" data-href="/articles/chunked-prefill.html"><i class="fas fa-file-alt nav-icon"></i><span>Chunked Prefill</span></li>
+              </ul>
+            </li>
+            <li class="nav-level2">
+              <div class="nav-header" data-level="2"><span class="arrow">&#9654;</span><i class="fas fa-project-diagram nav-icon"></i><span>并行策略</span></div>
+              <ul class="nav-children">
+                <li class="nav-level3" data-page="tensor-parallel" data-href="/articles/tensor-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Tensor Parallelism</span></li>
+                <li class="nav-level3" data-page="pipeline-parallel" data-href="/articles/pipeline-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Pipeline Parallelism</span></li>
+                <li class="nav-level3" data-page="sequence-parallel" data-href="/articles/sequence-parallel.html"><i class="fas fa-file-alt nav-icon"></i><span>Sequence Parallelism</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-level1">
+          <div class="nav-header" data-level="1"><span class="arrow">&#9654;</span><i class="fas fa-compress-arrows-alt nav-icon"></i><span>量化</span></div>
+          <ul class="nav-children"></ul>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i><div class="toggle-track"><div class="toggle-thumb"></div></div><span id="themeLabel">深色模式</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content-wrapper">
+        <div class="breadcrumb">
+          <a href="/">首页</a><span>›</span><a href="#">大模型推理</a><span>›</span><a href="#">并行策略</a><span>›</span><span style="color:var(--text-primary)">Sequence Parallelism</span>
+        </div>
+        <div class="content-card">
+          <h1>Sequence Parallelism</h1>
+          <div class="subtitle">Parallel Strategy — Sequence Dimension Sharding</div>
+          <div class="intro">Sequence Parallelism（SP）是将序列维度切分到多个 GPU 上的并行策略，专门用于处理超长上下文（100K+ token）。SP 在 Attention 计算中将 KV 按序列维度分布到不同 GPU，通过 Ring Attention 或 AllToAll 通信实现跨 GPU 的 Attention 计算。代表方法包括 Megatron-LM SP、Ring Attention、Ulysses Attention 等。</div>
+
+          <h2><i class="fas fa-book"></i> 核心原理</h2>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">传统的 TP 按 Head 维度切分 Attention，每个 GPU 处理一部分 Head，但每个 Head 仍需处理完整的序列。当序列长度很长（如 128K token）时，KV Cache 的显存占用和 Attention 的计算量都与序列长度成正比，单个 GPU 无法承受。SP 按序列维度切分——每个 GPU 只处理序列的一部分（如 128K/8=16K token），从而将显存和计算分散到多个 GPU。</p>
+
+          <h3>Megatron-LM 的 Sequence Parallelism</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Megatron-LM 的 SP 是对 TP 的补充——在 TP 切分 Attention Head 的基础上，对 LayerNorm 和 Dropout 等非 Attention 操作按序列维度切分。具体地：在 TP 的 AllReduce 之后，每个 GPU 持有完整的序列但只有部分 Head。Megatron-LM SP 将序列按 token 维度切分，每个 GPU 只处理序列的 1/TP 部分。在进入 Attention 之前通过 AllGather 收集完整序列，Attention 之后再按序列维度切分。这种 SP 不能减少 Attention 的计算量（Attention 仍需完整序列），但可以减少非 Attention 操作的计算量和激活显存。</p>
+
+          <h3>Ring Attention</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Ring Attention（Liu et al., 2024）是真正的序列级并行 Attention。核心思想是将 KV 按序列维度切分到 N 个 GPU 上，每个 GPU 持有 Query 的一部分和 KV 的一部分。Attention 计算通过环形通信（Ring）实现：（1）每个 GPU 先用本地的 KV 计算部分 Attention；（2）将 KV 沿环形拓扑发送到下一个 GPU；（3）接收上一个 GPU 发来的 KV，继续计算部分 Attention；（4）重复 N-1 次后，每个 GPU 都与所有 KV 计算了 Attention，通过 Online Softmax 合并得到最终结果。Ring Attention 的通信可以与计算重叠——在计算当前 KV 的 Attention 时，同时传输下一个 KV，因此理论上通信开销可以被完全隐藏。</p>
+
+          <h3>Ulysses Attention（DeepSpeed）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Ulysses Attention（Microsoft, 2024）使用 AllToAll 通信实现序列级并行。核心思想是：（1）将 Q/K/V 按序列维度切分到 N 个 GPU；（2）通过 AllToAll 通信将数据重排——从「每个 GPU 持有序列的一部分、所有 Head」变为「每个 GPU 持有所有序列的一部分 Head」；（3）重排后每个 GPU 可以独立计算其 Head 的 Attention（类似 TP）；（4）再通过 AllToAll 将结果重排回序列维度。Ulysses 的优势是通信模式简单（两次 AllToAll），劣势是 AllToAll 的通信量较大，且需要在通信前缓存完整序列。</p>
+
+          <h3>Context Parallelism（NVIDIA）</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">Context Parallelism（CP）是 NVIDIA 在 Megatron-Core 中引入的术语，本质上就是序列级并行 Attention。CP 结合了 Ring Attention 和 Ulysses 的优点：在节点内使用 AllToAll（高带宽），在节点间使用 Ring（通信与计算重叠）。CP 是 Llama 3.1 训练超长上下文（128K）的关键技术之一，也是 2024-2025 年大模型训练和推理的标准组件。</p>
+
+          <h3>SP 在推理中的应用</h3>
+          <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">在推理场景下，SP 主要用于支持超长上下文的 Prefill。当输入序列长度超过单个 GPU 的 KV Cache 容量时，需要使用 SP 将 KV 分布到多个 GPU。Decode 阶段由于每步只生成一个 token，SP 的效果有限——但 KV Cache 的分布仍然有效，可以减少单个 GPU 的显存压力。实践中的典型配置：TP=8（节点内 Head 切分）+ CP=2（跨节点序列切分），支持 128K+ 的上下文长度。</p>
+
+          <h2><i class="fas fa-star"></i> 关键特性</h2>
+          <ul class="feature-list">
+            <li><i class="fas fa-arrows-alt"></i><span><strong>序列维度切分</strong>：将长序列按 token 维度分配到多个 GPU，每个 GPU 只处理序列的一部分</span></li>
+            <li><i class="fas fa-infinity"></i><span><strong>支持超长上下文</strong>：通过 SP 可以支持 100K-1M+ 的上下文长度，突破单 GPU 显存限制</span></li>
+            <li><i class="fas fa-circle-nodes"></i><span><strong>Ring Attention</strong>：通过环形通信实现分布式 Attention，通信与计算重叠，理论上零通信开销</span></li>
+            <li><i class="fas fa-exchange-alt"></i><span><strong>Ulysses Attention</strong>：使用 AllToAll 通信重排数据，通信模式简单但通信量较大</span></li>
+            <li><i class="fas fa-code-branch"></i><span><strong>与 TP/PP 组合</strong>：SP 是 TP 的补充，通常 TP+PP+CP 组合使用（如 Llama 3.1 的 4D 并行）</span></li>
+            <li><i class="fas fa-rocket"></i><span><strong>训练+推理通用</strong>：训练时减少激活显存，推理时减少 KV Cache 显存</span></li>
+          </ul>
+
+          <h2><i class="fas fa-graduation-cap"></i> 面试常问 Q&A</h2>
+          <div style="background:var(--bg-secondary);border-radius:8px;padding:20px;margin-bottom:16px;">
+            <p style="margin-bottom:16px;"><strong>Q1：Sequence Parallelism 和 Tensor Parallelism 的区别是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：TP 按 Head/Hidden 维度切分——每个 GPU 持有所有序列 token 的一部分 Head。SP 按序列维度切分——每个 GPU 持有所有 Head 的一部分序列 token。TP 减少了每个 GPU 的权重和计算量，但 KV Cache 按 Head 切分；SP 减少了每个 GPU 的 KV Cache 和序列计算量，但权重需要完整存储（或与其他并行组合）。两者可以组合使用——TP 切分 Head，SP 切分序列。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q2：Ring Attention 是如何实现通信与计算重叠的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Ring Attention 将 GPU 组织为环形拓扑，每个 GPU 同时进行两项操作：（1）用当前收到的 KV 计算部分 Attention（计算）；（2）将上一轮的 KV 发送给下一个 GPU（通信）。由于计算和通信使用不同的硬件单元（计算用 Tensor Core，通信用 NVLink/NIC），两者可以完全并行。只要单次 KV 传输的时间不超过一次 Attention 计算的时间，通信开销就可以被完全隐藏。这要求 GPU 之间的互联带宽足够高。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q3：Ulysses Attention 和 Ring Attention 各自的优缺点？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：Ring Attention 的优点是通信与计算可以重叠，理论上零通信开销；缺点是需要 N-1 步环形通信，延迟较高，且实现复杂。Ulysses Attention 的优点是通信模式简单（两次 AllToAll），延迟较低；缺点是 AllToAll 的通信量较大（需要传输完整的 Q/K/V），且通信与计算不能重叠。实践中，节点内（高带宽 NVLink）常用 Ulysses，节点间（低带宽 InfiniBand）常用 Ring。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q4：SP 在推理场景下的作用是什么？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:16px;">A：在推理场景下，SP 主要用于支持超长上下文的 Prefill。当输入序列长度超过单个 GPU 的 KV Cache 容量时（如 128K token × 80 层 × 8 KV Head × 128 维 × 2 byte = 21GB），需要使用 SP 将 KV 分布到多个 GPU。Decode 阶段每步只生成一个 token，SP 的效果有限，但 KV Cache 的分布仍然减少了单个 GPU 的显存压力。Llama 3.1 使用 CP（Context Parallelism）支持 128K 上下文的推理。</p>
+
+            <p style="margin-bottom:16px;"><strong>Q5：什么是 4D 并行？Llama 3.1 是如何使用的？</strong></p>
+            <p style="color:var(--text-secondary);line-height:1.8;">A：4D 并行是 TP + PP + DP + CP 的组合。Llama 3.1（405B）在 16K GPU 上的训练配置为：TP=8（节点内 Head 切分）× PP=4（跨节点层切分）× DP=64（跨节点数据复制）× CP=8（跨节点序列切分）。TP 处理单层的显存问题，PP 处理跨节点的模型分布，DP 处理 batch 维度的并行，CP 处理长序列的 KV Cache 分布。四种并行策略各司其职，共同支撑 405B 模型在 128K 上下文下的高效训练。</p>
+          </div>
+
+          <h2><i class="fas fa-link"></i> 相关资源</h2>
+          <ul class="resource-links">
+            <li><a href="https://arxiv.org/abs/2310.01889" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Ring Attention with Blockwise Transformers for Near-Infinite Context (Liu et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2405.04532" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>DeepSpeed Ulysses: System Optimizations for Enabling Training of Extreme Long Sequence Transformer Models (Jacobs et al., 2024)</a></li>
+            <li><a href="https://arxiv.org/abs/2205.05198" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Megatron-LM Sequence Parallelism (Korthikanti et al., 2022)</a></li>
+            <li><a href="https://arxiv.org/abs/2407.21018" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Llama 3.1 Technical Report — 4D Parallelism with Context Parallelism</a></li>
+            <li><a href="https://github.com/NVIDIA/Megatron-LM" target="_blank" rel="noopener"><i class="fas fa-github"></i>NVIDIA/Megatron-Core — Context Parallelism 实现</a></li>
+            <li><a href="https://github.com/microsoft/DeepSpeed" target="_blank" rel="noopener"><i class="fas fa-github"></i>Microsoft DeepSpeed — Ulysses Attention 实现</a></li>
+          </ul>
+          <div class="update-date"><i class="far fa-edit"></i> 编辑于 2026-04-27</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/theme.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/utils.js"></script>
+</body>
+</html>
